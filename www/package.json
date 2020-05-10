@@ -8,7 +8,9 @@
   },
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server",
+    "wasm-build": "cd ..; wasm-pack build; cd -",
+    "wasm-build-start": "npm run wasm-build; npm start"
   },
   "repository": {
     "type": "git",
