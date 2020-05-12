@@ -31,7 +31,8 @@
   "dependencies": {
     "drifty": "file:../pkg",
     "minimist": ">=0.2.1",
-    "kind-of": ">=6.0.3"
+    "kind-of": ">=6.0.3",
+    "babylonjs": ">=4.1.0"
   },
   "devDependencies": {
     "hello-wasm-pack": "^0.1.0",
