@@ -14,22 +14,25 @@ const createScene = function () {
     const light = new BABYLON.HemisphericLight("light",
         new BABYLON.Vector3(50, 100, 90),
         scene);
+    light.intensity = 3.0;
 
-    const box = BABYLON.Mesh.CreateBox("Box", 4.0, scene);
-    box.position = Vector3.Zero();
+    // const box = BABYLON.Mesh.CreateBox("Box", 4.0, scene);
+    // box.position = Vector3.Zero();
+    //
+    // const box2 = BABYLON.Mesh.CreateBox("Box2", 4, scene);
+    // const material = new BABYLON.StandardMaterial("material1", scene);
+    // material.wireframe = true;
+    // box2.material = material;
+    // box2.position = new Vector3(0, 4, 0);
 
-    const box2 = BABYLON.Mesh.CreateBox("Box2", 4, scene);
-    const material = new BABYLON.StandardMaterial("material1", scene);
-    material.wireframe = true;
-    box2.material = material;
-    box2.position = new Vector3(0, 4, 0);
+    BABYLON.SceneLoader.ImportMesh("", "./models3d/shelby1967/", "1967-shelby-ford-mustang.babylon", scene);
 
     //--- an arc rotate camera
     const camera = new BABYLON.ArcRotateCamera("arcCam",
         BABYLON.Tools.ToRadians(45),
         BABYLON.Tools.ToRadians(45),
         10.0,
-        box.position,
+        new Vector3(0, 0, 0),
         scene);
 
     //--- a follow camera TODO: Fix the follow cam
