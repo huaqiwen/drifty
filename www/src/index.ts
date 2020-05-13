@@ -1,31 +1,33 @@
+// @ts-ignore
 import * as BABYLON from "babylonjs";
-import { Scene, Engine, Vector3 } from 'babylonjs';
+// @ts-ignore
+import { Scene, Engine, Vector3 } from "babylonjs";
 
-const canvas = document.getElementById("main_canvas");
+const canvas = document.getElementById("main_canvas") as HTMLCanvasElement;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const engine = new Engine(canvas, true);
 
 const createScene = function () {
     const scene = new Scene(engine);
-    // noinspection JSValidateTypes
-    scene.clearColor = new BABYLON.Color3.White();
+    scene.clearColor = new BABYLON.Color4(0, 0, 0, 1.0);
 
     const light = new BABYLON.HemisphericLight("light",
         new BABYLON.Vector3(50, 100, 90),
         scene);
     light.intensity = 3.0;
 
-    // const box = BABYLON.Mesh.CreateBox("Box", 4.0, scene);
-    // box.position = Vector3.Zero();
-    //
-    // const box2 = BABYLON.Mesh.CreateBox("Box2", 4, scene);
-    // const material = new BABYLON.StandardMaterial("material1", scene);
-    // material.wireframe = true;
-    // box2.material = material;
-    // box2.position = new Vector3(0, 4, 0);
+    BABYLON.SceneLoader.ImportMesh("",
+        "./models3d/shelby1967/",
+        "1967-shelby-ford-mustang.babylon",
+        scene, function(newMeshes) {
+            newMeshes[0].name = "shelby1967";
+            newMeshes[0].id = 'shelby001';
+            newMeshes[0].position = new Vector3(0, 4, 0)
+        });
 
-    BABYLON.SceneLoader.ImportMesh("", "./models3d/shelby1967/", "1967-shelby-ford-mustang.babylon", scene);
+    console.log(scene.getMeshByID("shelby001"));
+    console.log(scene.meshes);
 
     //--- an arc rotate camera
     const camera = new BABYLON.ArcRotateCamera("arcCam",
@@ -56,5 +58,6 @@ const createScene = function () {
 const scene = createScene();
 
 engine.runRenderLoop(function () {
+    // scene.getMeshByName("shelby1967").position.x += 0.01;
     scene.render();
 });
