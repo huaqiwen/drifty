@@ -1,65 +1,59 @@
 import * as BABYLON from "babylonjs";
-import { Scene, Engine, Vector3 } from "babylonjs";
+import { Engine, Scene } from "babylonjs";
+import * as BBMaterials from "babylonjs-materials";
 
 const canvas = document.getElementById("main_canvas") as HTMLCanvasElement;
 const engine = new Engine(canvas, true);
 
-const createScene = function () {
+const createScene = async function () {
     const scene = new Scene(engine);
-    scene.clearColor = new BABYLON.Color4(0, 0, 0, 1.0);
+    scene.clearColor = new BABYLON.Color4(0 / 255, 0 / 255, 0 / 255, 1.0);
 
     const light = new BABYLON.HemisphericLight("light",
         new BABYLON.Vector3(50, 100, 90),
         scene);
     light.intensity = 3.0;
 
-    BABYLON.SceneLoader.ImportMesh("",
+    BABYLON.MeshBuilder.CreateSphere("sphere", {}, scene);
+    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 500, height: 500}, scene);
+    ground.material = new BBMaterials.GridMaterial("groundMaterial", scene);
+
+    const data = await BABYLON.SceneLoader.ImportMeshAsync("",
         "./models3d/shelby1967/",
         "1967-shelby-ford-mustang.babylon",
-        scene, function(newMeshes) {
-            newMeshes[0].name = "shelby1967";
-            newMeshes[0].id = 'shelby001';
-            newMeshes[0].position = new Vector3(0, 4, 0)
-        });
-
-    console.log(scene.getMeshByID("shelby001"));
-    console.log(scene.meshes);
-
-    //--- an arc rotate camera
-    const camera = new BABYLON.ArcRotateCamera("arcCam",
-        BABYLON.Tools.ToRadians(45),
-        BABYLON.Tools.ToRadians(45),
-        10.0,
-        new Vector3(0, 0, 0),
         scene);
+    const newMeshes = data.meshes;
+    const shelby_root = new BABYLON.TransformNode("shelby1967", scene);
+    newMeshes.forEach((mesh) => {
+        if (!mesh.parent) {
+            mesh.parent = shelby_root;
+        }
+    })
 
-    //--- a follow camera TODO: Fix the follow cam
-    // const camera = new BABYLON.FollowCamera("followCam",
-    //     new BABYLON.Vector3(0, 10, -10),
-    //     scene);
-    // camera.lockedTarget = box;
-    // camera.radius = 30;
-    // camera.heightOffset = 10;
+    const camera = new BABYLON.FollowCamera("followCam",
+        new BABYLON.Vector3(500, 500, 0),
+        scene);
+    camera.lockedTarget = scene.getNodeByName("shelby1967").getChildMeshes(false)[2];
+    camera.radius = 30;
+    camera.heightOffset = 10;
 
     camera.attachControl(canvas, true);
-    // Enable WASD controls
-    camera.keysUp.push(87);
-    camera.keysDown.push(83);
-    camera.keysLeft.push(65);
-    camera.keysRight.push(68);
 
     return scene;
 };
 
-const scene = createScene();
+let scene;
+createScene().then((result) => {
+    scene = result;
 
-engine.runRenderLoop(function () {
-    // scene.getMeshByName("shelby1967").position.x += 0.01;
-    scene.render();
+    engine.runRenderLoop(function () {
+        const shelby1967_root = scene.getNodeByID("shelby1967");
+        shelby1967_root.position.z += 0.05;
+        scene.render();
+    });
 });
 
 //--- resize canvas on window resize
-
 window.addEventListener('resize', resize, false);
 window.addEventListener('load', resize, false);
 
