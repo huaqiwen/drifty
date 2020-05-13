@@ -3,7 +3,8 @@
     "target": "esnext",
     "watch": true,
     "lib": ["dom", "ES2020"],
-    "outDir": "dist"
+    "outDir": "dist",
+    "moduleResolution": "node",
   },
   "include": [
     "src/"

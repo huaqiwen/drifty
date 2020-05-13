@@ -1,6 +1,4 @@
-// @ts-ignore
 import * as BABYLON from "babylonjs";
-// @ts-ignore
 import { Scene, Engine, Vector3 } from "babylonjs";
 
 const canvas = document.getElementById("main_canvas") as HTMLCanvasElement;
