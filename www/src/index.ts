@@ -2,8 +2,6 @@ import * as BABYLON from "babylonjs";
 import { Scene, Engine, Vector3 } from "babylonjs";
 
 const canvas = document.getElementById("main_canvas") as HTMLCanvasElement;
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
 const engine = new Engine(canvas, true);
 
 const createScene = function () {
@@ -59,3 +57,13 @@ engine.runRenderLoop(function () {
     // scene.getMeshByName("shelby1967").position.x += 0.01;
     scene.render();
 });
+
+//--- resize canvas on window resize
+
+window.addEventListener('resize', resize, false);
+window.addEventListener('load', resize, false);
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
