@@ -19,8 +19,10 @@ async function createScene () {
     const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 500, height: 500}, scene);
     ground.material = new BBMaterials.GridMaterial("groundMaterial", scene);
 
+    // import meshes on parallel
     await Promise.all([
         Builder.createModelNode("", "./models3d/shelby1967/", "1967-shelby-ford-mustang.babylon", scene, "shelby1967"),
+        Builder.createModelNode("", "./models3d/viper/", "dodge-viper-gts.babylon", scene, "viper"),
     ]);
 
     const camera = new BABYLON.FollowCamera("followCam",
@@ -28,9 +30,7 @@ async function createScene () {
         scene);
     camera.lockedTarget = scene.getNodeByName("shelby1967").getChildMeshes(false)[2];
     camera.radius = 30;
-    camera.heightOffset = 10;
-
-    camera.attachControl(canvas, true);
+    camera.heightOffset = 10;camera.attachControl(canvas, true);
 
     return scene;
 }
@@ -38,6 +38,8 @@ async function createScene () {
 let scene;
 createScene().then((result) => {
     scene = result;
+
+    Builder.scaleTransformNode(scene, "viper", 0.77);
 
     engine.runRenderLoop(function () {
         const shelby1967_root = scene.getNodeByID("shelby1967");
