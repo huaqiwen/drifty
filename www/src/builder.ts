@@ -1,5 +1,6 @@
 import * as BABYLON from "babylonjs";
-import { Scene } from "babylonjs";
+import { Scene, Vector3 } from "babylonjs";
+
 
 /**
  * Imports meshes in a file and links them to a root `TransformNode`
@@ -16,14 +17,46 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
     const root = new BABYLON.TransformNode(rootName, scene);
     newMeshes.forEach((mesh) => {
         if (!mesh.parent) {
-            mesh.parent = root
+            mesh.parent = root;
         }
-    })
+    });
 }
 
 
 /**
- * Scale a TransformNode in its scene by scaling all its children
+ * Creates a BABYLON FollowCamera that follows a given node or mesh.
+ *
+ * @param camName - a string that defines the name of the created FollowCamera
+ * @param scene - scene that owns the camera
+ * @param canvas - canvas that controls the camera if `attachCtrl` == true
+ * @param targetName - a string that defines the name of the locked target of the camera
+ * @param position - a Vector3 that defines the starting position of the camera
+ * @param radius - a number that defines the distance the follow camera should follow an object at
+ * @param heightOffset - a number that defines a height offset between the camera and the object it follows.
+ * @param rotationOffset - a number in degrees that define a rotation offset between the camera and the object it follows
+ * @param isNode - defines whether the targetName represents a TransformNode (true) or a Mesh(false)
+ * @param attachCtrl - defines whether to attach camera's control to `canvas`
+ */
+export function createFollowCamera(camName: string, scene: Scene, canvas: HTMLCanvasElement, targetName: string, position=new Vector3(500, 500, 0),
+                                   radius=50, heightOffset=20, rotationOffset=180, isNode=true, attachCtrl=true) {
+    const camera = new BABYLON.FollowCamera(camName, Vector3.Zero(), scene);
+    camera.position = position;
+    camera.radius = radius;
+    camera.heightOffset = heightOffset;
+    camera.rotationOffset = rotationOffset;
+    if (isNode) {
+        camera.lockedTarget = scene.getNodeByName(targetName).getChildMeshes(false)[1];
+    } else {
+        camera.lockedTarget = scene.getMeshByName(targetName);
+    }
+    if (attachCtrl) {
+        camera.attachControl(canvas, true);
+    }
+}
+
+
+/**
+ * Scales a TransformNode in its scene by scaling all its children
  *
  * @param scene - scene that owns the input TransformNode
  * @param nodeName - a string that defines the name of the TransformNode
@@ -33,5 +66,5 @@ export function scaleTransformNode(scene: Scene, nodeName: string, scale: number
     const node_meshes = scene.getNodeByName(nodeName).getChildMeshes(false);
     node_meshes.forEach((mesh) => {
         mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
-    })
+    });
 }

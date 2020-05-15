@@ -1,10 +1,4 @@
-<div style="text-align: center;">
-
-  <h1><code>wasm-drifty</code></h1>
-  <p>
-    <a href="https://travis-ci.org/rustwasm/wasm-pack-template"><img src="https://img.shields.io/travis/rustwasm/wasm-pack-template.svg?style=flat-square" alt="Build Status" /></a>
-  </p>
- </div>
+<h1 style="text-align: center"><code>wasm-drifty</code></h1>
 
 ## About
 
