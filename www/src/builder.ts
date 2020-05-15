@@ -1,4 +1,5 @@
 import * as BABYLON from "babylonjs";
+import * as GUI from "babylonjs-gui";
 import { Scene, Vector3 } from "babylonjs";
 
 
@@ -24,7 +25,7 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
 
 
 /**
- * Creates a BABYLON FollowCamera that follows a given node or mesh.
+ * Creates a BABYLON FollowCamera that follows a given node or mesh
  *
  * @param camName - a string that defines the name of the created FollowCamera
  * @param scene - scene that owns the camera
@@ -52,6 +53,30 @@ export function createFollowCamera(camName: string, scene: Scene, canvas: HTMLCa
     if (attachCtrl) {
         camera.attachControl(canvas, true);
     }
+}
+
+
+/**
+ * Creates a 3D button with onPointerUpObservable event
+ *
+ * @param name - a string defines the name of the button
+ * @param lb_text - a string defines the text content of the button
+ * @param panel - the panel that owns the button
+ * @param onClick - the callback that will be executed when button pressed and released
+ * @param fontSize - a number defines the font size of the text content of the button
+ * @param textColor - a string defines the color of the text content of the button
+ */
+export function createRegButton3D(name: string, lb_text: string, panel: GUI.StackPanel3D, onClick: () => void, fontSize: number=80, textColor: string="white") {
+    const button = new GUI.Button3D(name);
+    panel.addControl(button);
+    button.onPointerUpObservable.add(onClick);
+
+    // create text label
+    const txt = new GUI.TextBlock();
+    txt.text = lb_text;
+    txt.color = textColor;
+    txt.fontSize = fontSize;
+    button.content = txt;
 }
 
 
