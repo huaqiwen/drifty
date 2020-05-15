@@ -3,6 +3,7 @@ import { Engine, Scene } from "babylonjs";
 import * as BBMaterials from "babylonjs-materials";
 
 import * as Builder from "./builder";
+import { Road } from './models/road';
 
 const canvas = document.getElementById("main_canvas") as HTMLCanvasElement;
 const engine = new Engine(canvas, true);
@@ -18,6 +19,10 @@ async function createScene () {
 
     const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 500, height: 500}, scene);
     ground.material = new BBMaterials.GridMaterial("groundMaterial", scene);
+
+    // Create road
+    const road = new Road(50, length => length / 20);
+    Builder.createRoadMesh(road, scene);
 
     // import meshes on parallel
     await Promise.all([
