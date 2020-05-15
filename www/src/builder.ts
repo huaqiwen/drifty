@@ -24,6 +24,7 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
 }
 
 const ROAD_WIDTH = 50;
+const ROAD_THICKNESS = 1;
 /**
  * Create a road mesh in scene from a `Road` in `scene`.
  * 
@@ -39,9 +40,6 @@ export function createRoadMesh(road: Road, scene: Scene) {
     let currentZ = 0;
     let directionIsRight = false;
 
-    // Create a horizontal plane slightly above ground so that it doesn't flicker
-    const horizontalPlane = new BABYLON.Plane(0, 1, 0, -0.1);
-
     road.segments.forEach(segment => {
         // Create planes for a segment of the road
         const roadName = 'roadSegment' + count;
@@ -55,11 +53,11 @@ export function createRoadMesh(road: Road, scene: Scene) {
             xLength = ROAD_WIDTH;
         }
         const options = {
-            width: zLength,
-            height: xLength,
-            sourcePlane: horizontalPlane,
+            width: xLength,
+            height: ROAD_THICKNESS,
+            depth: zLength,
         }
-        const segmentMesh = BABYLON.MeshBuilder.CreatePlane(roadName, options, scene);
+        const segmentMesh = BABYLON.MeshBuilder.CreateBox(roadName, options, scene);
         segmentMesh.material = roadMaterial;
         segmentMesh.position.x = currentZ * ROAD_WIDTH + xLength / 2;
         segmentMesh.position.z = currentX * ROAD_WIDTH + zLength / 2;
