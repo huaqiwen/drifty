@@ -4,6 +4,8 @@ import { Scene, Vector3 } from "babylonjs";
 
 
 import { Road } from './models/road';
+import { Car} from "./models/car";
+import { Game } from './settings';
 
 /**
  * Imports meshes in a file and links them to a root `TransformNode`
@@ -13,8 +15,9 @@ import { Road } from './models/road';
  * @param filename - a string that defines the name of the scene file
  * @param scene - scene the instance of BABYLON.Scene to append to
  * @param rootName - a string that defines the name of the new TransformNode
+ * @param position - a Vector3 that defines the initial position of the model
  */
-export async function createModelNode(meshNames: string, fileRootUrl: string, filename: string, scene: Scene, rootName: string) {
+export async function createModelNode(meshNames: string, fileRootUrl: string, filename: string, scene: Scene, rootName: string, position: Vector3=Vector3.Zero()) {
     const data = await BABYLON.SceneLoader.ImportMeshAsync(meshNames, fileRootUrl, filename, scene);
     const newMeshes = data.meshes;
     const root = new BABYLON.TransformNode(rootName, scene);
@@ -23,6 +26,15 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
             mesh.parent = root;
         }
     });
+    root.position = position;
+}
+
+
+export async function createCar(car: Car, position: Vector3, scene: Scene) {
+    await createModelNode("", car.fileRootUrl, car.filename, scene, car.name, position);
+    const carNode = scene.getNodeByName(car.name) as BABYLON.TransformNode;
+    carNode.scaling = car.scaling;
+    carNode.rotation = car.rotation;
 }
 
 
@@ -69,9 +81,10 @@ export function createFollowCamera(camName: string, scene: Scene, canvas: HTMLCa
  * @param textColor - a string defines the color of the text content of the button
  */
 export function createRegButton3D(name: string, lb_text: string, panel: GUI.StackPanel3D, onClick: () => void, fontSize: number=80, textColor: string="white") {
-    const button = new GUI.Button3D(name);
+    let button = new GUI.Button3D(name);
     panel.addControl(button);
     button.onPointerUpObservable.add(onClick);
+    console.log(button.mesh);
 
     // create text label
     const txt = new GUI.TextBlock();
@@ -81,8 +94,7 @@ export function createRegButton3D(name: string, lb_text: string, panel: GUI.Stac
     button.content = txt;
 }
 
-const ROAD_WIDTH = 50;
-const ROAD_THICKNESS = 1;
+
 /**
  * Create a road mesh in scene from a `Road` in `scene`.
  * 
@@ -104,21 +116,21 @@ export function createRoadMesh(road: Road, scene: Scene) {
         
         let zLength, xLength;
         if (directionIsRight) {
-            zLength = ROAD_WIDTH;
-            xLength = ROAD_WIDTH * segment;
+            zLength = Game.ROAD_CONFIG.width;
+            xLength = Game.ROAD_CONFIG.width * segment;
         } else {
-            zLength = ROAD_WIDTH * segment;
-            xLength = ROAD_WIDTH;
+            zLength = Game.ROAD_CONFIG.width * segment;
+            xLength = Game.ROAD_CONFIG.width;
         }
         const options = {
             width: xLength,
-            height: ROAD_THICKNESS,
+            height: Game.ROAD_CONFIG.thickness,
             depth: zLength,
         }
         const segmentMesh = BABYLON.MeshBuilder.CreateBox(roadName, options, scene);
         segmentMesh.material = roadMaterial;
-        segmentMesh.position.x = currentZ * ROAD_WIDTH + xLength / 2;
-        segmentMesh.position.z = currentX * ROAD_WIDTH + zLength / 2;
+        segmentMesh.position.x = currentZ * Game.ROAD_CONFIG.width + xLength / 2;
+        segmentMesh.position.z = currentX * Game.ROAD_CONFIG.width + zLength / 2;
         
         if (directionIsRight) {
             currentZ += segment;
@@ -127,19 +139,5 @@ export function createRoadMesh(road: Road, scene: Scene) {
         }
         count++;
         directionIsRight = !directionIsRight;
-    });
-}
-
-/**
- * Scales a TransformNode in its scene by scaling all its children
- *
- * @param scene - scene that owns the input TransformNode
- * @param nodeName - a string that defines the name of the TransformNode
- * @param scale - a number that defines the scaling factor
- */
-export function scaleTransformNode(scene: Scene, nodeName: string, scale: number) {
-    const node_meshes = scene.getNodeByName(nodeName).getChildMeshes(false);
-    node_meshes.forEach((mesh) => {
-        mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
     });
 }
