@@ -129,8 +129,11 @@ export function createRoadMesh(road: Road, scene: Scene) {
         }
         const segmentMesh = BABYLON.MeshBuilder.CreateBox(roadName, options, scene);
         segmentMesh.material = roadMaterial;
-        segmentMesh.position.x = currentZ * Game.ROAD_CONFIG.width + xLength / 2;
-        segmentMesh.position.z = currentX * Game.ROAD_CONFIG.width + zLength / 2;
+        segmentMesh.position = new Vector3(
+            currentZ * Game.ROAD_CONFIG.width + xLength / 2,
+            -Game.ROAD_CONFIG.thickness,
+            currentX * Game.ROAD_CONFIG.width + zLength / 2,
+        );
         
         if (directionIsRight) {
             currentZ += segment;
