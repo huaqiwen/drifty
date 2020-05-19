@@ -1,29 +1,51 @@
 import * as BABYLON from "babylonjs";
 import * as GUI from "babylonjs-gui";
-import { Scene, Vector3 } from "babylonjs";
+import { Scene, Vector3, TransformNode } from "babylonjs";
 
 
 import { Road } from './models/road';
-import { Car} from "./models/car";
+import { Car } from "./models/car";
 import { Game } from './settings';
 
 /**
- * Imports meshes in a file and links them to a root `TransformNode`
+ * Imports meshes in a file and links them to a root of type `TransformNode` or 'Mesh'
  *
  * @param meshNames - an array of mesh names, a single mesh name, or empty string for all meshes that filter what meshes are imported
  * @param fileRootUrl - a string that defines the root url for the scene and resources or the concatenation of rootURL and filename
  * @param filename - a string that defines the name of the scene file
  * @param scene - scene the instance of BABYLON.Scene to append to
- * @param rootName - a string that defines the name of the new TransformNode
+ * @param rootName - a string that defines the name of the root
+ * @param rootType - a string that defines type of the root, either 'node' or 'mesh'
  * @param position - a Vector3 that defines the initial position of the model
  */
-export async function createModelNode(meshNames: string, fileRootUrl: string, filename: string, scene: Scene, rootName: string, position: Vector3=Vector3.Zero()) {
+export async function createModelNode(
+    meshNames: string,
+    fileRootUrl: string,
+    filename: string,
+    scene: Scene,
+    rootName: string,
+    rootType: 'node' | 'mesh' = 'node',
+    position: Vector3=Vector3.Zero(),
+) {
     const data = await BABYLON.SceneLoader.ImportMeshAsync(meshNames, fileRootUrl, filename, scene);
     const newMeshes = data.meshes;
-    const root = new BABYLON.TransformNode(rootName, scene);
+
+    let root: TransformNode | BABYLON.Mesh;
+    switch (rootType) {
+        case 'node':
+            root = new BABYLON.TransformNode(rootName, scene);
+            break;
+        case 'mesh':
+            root = new BABYLON.Mesh(rootName, scene);
+            break;
+    }
     newMeshes.forEach((mesh) => {
         if (!mesh.parent) {
-            mesh.parent = root;
+            if (root instanceof BABYLON.Mesh) {
+                root.addChild(mesh);
+            } else {
+                mesh.parent = root;
+            }
         }
     });
     root.position = position;
@@ -31,10 +53,17 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
 
 
 export async function createCar(car: Car, position: Vector3, scene: Scene) {
-    await createModelNode("", car.fileRootUrl, car.filename, scene, car.name, position);
-    const carNode = scene.getNodeByName(car.name) as BABYLON.TransformNode;
+    await createModelNode("", car.fileRootUrl, car.filename, scene, car.name, 'mesh', position);
+    const carNode = scene.getMeshByName(car.name) as BABYLON.Mesh;
+    
     carNode.scaling = car.scaling;
     carNode.rotation = car.rotation;
+
+    carNode.getChildMeshes().forEach(childMesh => {
+        childMesh.physicsImpostor = new BABYLON.PhysicsImpostor(childMesh, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, restitution: 0 }, scene);
+    });
+
+    carNode.physicsImpostor = new BABYLON.PhysicsImpostor(carNode, BABYLON.PhysicsImpostor.NoImpostor, { mass: 30, friction: 1, restitution: 0 }, scene);
 }
 
 
@@ -134,6 +163,16 @@ export function createRoadMesh(road: Road, scene: Scene) {
             -Game.ROAD_CONFIG.thickness,
             currentX * Game.ROAD_CONFIG.width + zLength / 2,
         );
+
+        const physicsImpostor = new BABYLON.PhysicsImpostor(
+            segmentMesh,
+            BABYLON.PhysicsImpostor.BoxImpostor,
+            { mass: 0, friction: 1.5, restitution: 0 },
+            scene
+        );
+        segmentMesh.physicsImpostor = physicsImpostor;
+
+        segmentMesh.physicsImpostor
         
         if (directionIsRight) {
             currentZ += segment;

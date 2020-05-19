@@ -25,6 +25,7 @@
     "Haotian Gong <haotiangong@hotmail.com> (https://github.com/apricot2012)"
   ],
   "dependencies": {
+    "ammo.js": "github:kripken/ammo.js",
     "babylonjs": "^4.1.0",
     "babylonjs-gui": "^4.1.0",
     "drifty": "file:../pkg",

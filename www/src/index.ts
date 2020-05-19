@@ -2,7 +2,7 @@ import * as BABYLON from "babylonjs";
 import * as GUI from "babylonjs-gui";
 import { Engine, Scene, Vector3 } from "babylonjs";
 // import * as BBMaterials from "babylonjs-materials";
-
+import * as ammo from "ammo.js";
 
 import * as Builder from "./builder";
 import { Direction } from "./types";
@@ -22,6 +22,11 @@ async function createScene () {
     const scene = new Scene(engine);
     scene.clearColor = Game.SCENE_COLOR;
 
+    // Enable physics
+    const cannonPlugin = new BABYLON.AmmoJSPlugin();
+    const gravityVector = new Vector3(0, -9.81, 0);
+    scene.enablePhysics(gravityVector, cannonPlugin);
+
     // create GUI manager and action panel
     const guiManager = new GUI.GUI3DManager(scene);
     const panel = new GUI.StackPanel3D(false);
@@ -34,7 +39,10 @@ async function createScene () {
     light.intensity = 2.0;
 
     // Create road
-    const road = new Road(50, length => length / 20);
+    const road = new Road(50, length => 
+        // length / 20
+        0
+    );
     Builder.createRoadMesh(road, scene);
 
     // Create cars
@@ -57,21 +65,27 @@ async function createScene () {
     return scene;
 }
 
-let scene;
+let scene: Scene;
 createScene().then((result) => {
     scene = result;
 
     engine.runRenderLoop(function () {
-        const aventador_root = scene.getNodeByName("aventador");
+        const aventador_root = scene.getMeshByName("aventador");
+        const camera = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
+
+        const impulse = 10;
 
         if (actionState == Direction.Forward) {
-            scene.getCameraByName("followCam").rotationOffset = 180;
+            camera.rotationOffset = 180;
             aventador_root.rotation = new Vector3(0, Math.PI / 2, 0);
-            aventador_root.position.z += 1.5;
+            // aventador_root.position.z += 1.5;
+            aventador_root.physicsImpostor.applyImpulse(new Vector3(0, 0, impulse), aventador_root.getAbsolutePosition().add(new Vector3(0, -0, 0)));
+            
         } else if (actionState == Direction.Right ) {
-            scene.getCameraByName("followCam").rotationOffset = 240;
+            camera.rotationOffset = 240;
             aventador_root.rotation = new Vector3(0, Math.PI, 0);
-            aventador_root.position.x += 1.5;
+            // aventador_root.position.x += 1.5;
+            aventador_root.physicsImpostor.applyImpulse(new Vector3(impulse, 0 , 0), aventador_root.getAbsolutePosition().add(new Vector3(0, -0, 0)));
         }
 
         scene.actionManager = new BABYLON.ActionManager(scene);

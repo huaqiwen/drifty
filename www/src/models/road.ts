@@ -32,6 +32,8 @@ export class Road {
             currentLength++;
         }
 
+        segments.push(currentSegmentLength);
+
         return segments;
     }
 }

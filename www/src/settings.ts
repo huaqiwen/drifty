@@ -32,16 +32,16 @@ export namespace Game {
      * defines the starting position of the three cars
      */
     export const CAR_START_POS = [
-        new BABYLON.Vector3(5, 0, 0),
-        new BABYLON.Vector3(15, 0, 0),
-        new BABYLON.Vector3(25, 0, 0),
+        new BABYLON.Vector3(5, 0, 2),
+        new BABYLON.Vector3(15, 0, 2),
+        new BABYLON.Vector3(25, 0, 2),
     ]
 
     /**
      * defines the width and thickness of the game road
      */
     export const ROAD_CONFIG = {
-        width: 30,
+        width: 100,
         thickness: 1,
     }
 
