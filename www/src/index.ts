@@ -10,6 +10,7 @@ const engine = new Engine(canvas, true);
 
 const createScene = function () {
     const scene = new Scene(engine);
+<<<<<<< Updated upstream
     scene.clearColor = new BABYLON.Color4(0, 0, 0, 1.0);
 
     const light = new BABYLON.HemisphericLight("light",
@@ -51,6 +52,48 @@ const createScene = function () {
     camera.keysDown.push(83);
     camera.keysLeft.push(65);
     camera.keysRight.push(68);
+=======
+    scene.clearColor = Game.SCENE_COLOR;
+
+    // create GUI manager and action panel
+    const guiManager = new GUI.GUI3DManager(scene);
+    const panel = new GUI.StackPanel3D(false);
+    guiManager.addControl(panel);
+    panel.margin = Game.PANEL_CONFIG.margin;
+    panel.position = Game.PANEL_CONFIG.position;
+
+    
+    // Create gravity 
+    Builder.initPhysics(scene);
+
+    // Create light
+    const light = new BABYLON.HemisphericLight("light", Game.LIGHT_POS, scene);
+    light.intensity = 2.0;
+
+    // Create cars
+    let importCarPromises = []
+    for (let i = 0; i < 3; i++) { importCarPromises.push(Builder.createCar(Game.CARS[inGameCars[i]], Game.CAR_START_POS[i], scene)); }
+    await Promise.all(importCarPromises);
+
+    
+    // Create road
+    const road = new Road(50, length => length / 20);
+    Builder.createRoadMesh(road, scene);
+
+    // Create follow camera
+    Builder.createFollowCamera("followCam", scene, canvas, "aventador", new Vector3(500, 500, 0),
+        12, 7, 170, true, false);
+
+    // Create buttons
+    Builder.createRegButton3D("startButton", "Start!", panel, () => {
+        panel.removeControl(panel.children[0]);
+        const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
+        cam.radius = 50; cam.heightOffset = 20; cam.rotationOffset = 180;
+        actionState = Direction.Forward;
+    });
+>>>>>>> Stashed changes
+
+    Builder.createGravity(scene);
 
     return scene;
 };

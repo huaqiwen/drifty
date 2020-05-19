@@ -29,6 +29,12 @@
   },
   "homepage": "https://github.com/rustwasm/create-wasm-app#readme",
   "dependencies": {
+<<<<<<< Updated upstream
+=======
+    "ammo.js": "github:kripken/ammo.js",
+    "babylonjs": "^4.1.0",
+    "babylonjs-gui": "^4.1.0",
+>>>>>>> Stashed changes
     "drifty": "file:../pkg",
     "minimist": ">=0.2.1",
     "kind-of": ">=6.0.3",
