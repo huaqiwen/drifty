@@ -29,16 +29,19 @@
     "babylonjs-gui": "^4.1.0",
     "drifty": "file:../pkg",
     "kind-of": ">=6.0.3",
-    "minimist": ">=0.2.1"
+    "minimist": ">=0.2.1",
+    "vue": "^2.6.11"
   },
   "devDependencies": {
+    "babylonjs-materials": "^4.1.0",
     "copy-webpack-plugin": "^5.0.0",
     "hello-wasm-pack": "^0.1.0",
     "ts-loader": "^7.0.4",
     "typescript": "^3.9.2",
+    "vue-loader": "^15.9.2",
+    "vue-template-compiler": "^2.6.11",
     "webpack": "^4.29.3",
     "webpack-cli": "^3.1.0",
-    "webpack-dev-server": "^3.1.5",
-    "babylonjs-materials": "^4.1.0"
+    "webpack-dev-server": "^3.1.5"
   }
 }

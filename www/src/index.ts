@@ -102,3 +102,14 @@ function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
+
+
+// TODO: move this somewhere else 
+// TODO TESTING: importing vue
+import Vue from 'vue';
+import App from './views/App.vue';
+
+new Vue({
+    el: '#app',
+    render: h => h(App),
+});
