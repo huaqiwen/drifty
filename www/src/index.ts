@@ -12,12 +12,14 @@ const canvas = document.getElementById("main_canvas") as HTMLCanvasElement;
 const engine = new Engine(canvas, true);
 
 let actionState = Direction.Still;
+let isSpaceKeyDown = false;
 
 let movement = {
     forward: 0,
     rightward: 0,
     downward: 0,
     rotationDelta: 0,
+    turningTicks: -1,
     state: Direction.Still
 }
 
@@ -120,7 +122,8 @@ createScene().then((result) => {
 window.addEventListener('resize', resize, false);
 window.addEventListener('load', resize, false);
 
-window.addEventListener('keydown', keydown)
+window.addEventListener('keydown', keydown);
+window.addEventListener('keyup', keyup);
 
 function resize() {
     canvas.width = window.innerWidth;
@@ -128,24 +131,40 @@ function resize() {
 }
 
 async function keydown(e) {
-    // space is pressed
+    // Space key pressed.
     if (e.code == 'Space') {
-        // console.log(movement.state);
+
+        if (isSpaceKeyDown) return;
+        isSpaceKeyDown = true;
+
         for (let i=0; i < 60; i++) {
-            if (movement.state == Direction.Forward) {
-                movement.rightward += 1 / 60;
-                movement.forward -= 1 / 60;
-                movement.rotationDelta += (1 / 60) * Math.PI / 2;
-            } else if (movement.state == Direction.Right) {
-                movement.rightward -= 1 / 60;
-                movement.forward += 1 / 60;
-                movement.rotationDelta -= (1 / 60) * Math.PI / 2;
-            }
-            await sleep(1000 / 60);
+            movement.turningTicks = i;
+            movement.rightward += 1 / 60;
+            movement.forward -= 1 / 60;
+            movement.rotationDelta += (1 / 60) * Math.PI / 2;
+            await sleep(10);
         }
 
-        if (movement.state == Direction.Forward) movement.state = Direction.Right;
-        else if (movement.state == Direction.Right) movement.state = Direction.Forward;
+        movement.state = Direction.Right;
+    }
+}
+
+async function keyup(e) {
+    // Space key released.
+    if (e.code == 'Space') {
+
+        isSpaceKeyDown = false;
+
+        for (let i=0; i < 60; i++) {
+            movement.turningTicks = i;
+            movement.rightward -= 1 / 60;
+            movement.forward += 1 / 60;
+            movement.rotationDelta -= (1 / 60) * Math.PI / 2;
+            await sleep(10);
+        }
+
+        movement.state = Direction.Forward;
+
     }
 }
 
