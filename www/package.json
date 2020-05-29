@@ -7,7 +7,8 @@
     "build": "webpack --config webpack.config.js",
     "start": "webpack-dev-server",
     "wasm-build": "cd .. && wasm-pack build && cd -",
-    "wasm-build-start": "npm run wasm-build && npm start"
+    "wasm-build-start": "npm run wasm-build && npm start",
+    "deploy": "gh-pages -d dist"
   },
   "repository": {
     "type": "git",
@@ -39,6 +40,7 @@
     "webpack": "^4.29.3",
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.5",
-    "babylonjs-materials": "^4.1.0"
+    "babylonjs-materials": "^4.1.0",
+    "gh-pages": "^2.2.0"
   }
 }

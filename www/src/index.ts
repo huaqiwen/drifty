@@ -62,6 +62,9 @@ async function createScene () {
 
         movement.forward = 1;
         movement.state = Direction.Forward;
+
+        window.addEventListener('keydown', keydown);
+        window.addEventListener('keyup', keyup);
     });
 
     return scene;
@@ -121,9 +124,6 @@ createScene().then((result) => {
 //--- resize canvas on window resize
 window.addEventListener('resize', resize, false);
 window.addEventListener('load', resize, false);
-
-window.addEventListener('keydown', keydown);
-window.addEventListener('keyup', keyup);
 
 function resize() {
     canvas.width = window.innerWidth;
