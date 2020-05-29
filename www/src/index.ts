@@ -19,7 +19,7 @@ let movement = {
     rightward: 0,
     downward: 0,
     rotationDelta: 0,
-    turningTicks: -1,
+    turningTicks: 0,
     state: Direction.Still
 }
 
@@ -137,8 +137,11 @@ async function keydown(e) {
         if (isSpaceKeyDown) return;
         isSpaceKeyDown = true;
 
-        for (let i=0; i < 60; i++) {
-            movement.turningTicks = i;
+        for (let i=movement.turningTicks; i < 60; i++) {
+            // Space key released, quit turning action.
+            if (!isSpaceKeyDown) return;
+
+            movement.turningTicks = i + 1;
             movement.rightward += 1 / 60;
             movement.forward -= 1 / 60;
             movement.rotationDelta += (1 / 60) * Math.PI / 2;
@@ -155,8 +158,11 @@ async function keyup(e) {
 
         isSpaceKeyDown = false;
 
-        for (let i=0; i < 60; i++) {
-            movement.turningTicks = i;
+        for (let i=movement.turningTicks; i > 0; i--) {
+            // Space key pressed, quit turning action.
+            if (isSpaceKeyDown) return;
+
+            movement.turningTicks = i - 1;
             movement.rightward -= 1 / 60;
             movement.forward += 1 / 60;
             movement.rotationDelta -= (1 / 60) * Math.PI / 2;
