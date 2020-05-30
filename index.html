@@ -13,19 +13,45 @@
       body {
         width: 100%;
         height: 100%;
+        background-color: #6396D8;
       }
 
       canvas {
         /* remove the scrollbars */
         display: block;
       }
+
+      #gameLoadingScreen {
+        position: absolute;
+        width: 100%;
+        color: white;
+        font-size: 30px;
+        text-align: center;
+        margin: 0;
+        top: 50%;
+        -ms-transform: translateY(-50%);
+        transform: translateY(-50%);
+      }
+
+      #loading-progress {
+        margin: auto;
+      }
+
+      #loading-progress-label {
+        margin: auto;
+      }
     </style>
   </head>
 
   <body>
-    <canvas id="main_canvas"></canvas>
+    <div id="gameLoadingScreen">
+      <label id="loading-progress-label" for="loading-progress">Loading...</label>
+      <span></span>
+      <progress id="loading-progress" value="0" max="100"></progress>
+    </div>
+
+    <canvas id="main-canvas"></canvas>
 
     <script src="./bootstrap.js"></script>
-    <script src="./index.js"></script>
   </body>
 </html>
