@@ -18,7 +18,28 @@ import { Game } from './settings';
  * @param position - a Vector3 that defines the initial position of the model
  */
 export async function createModelNode(meshNames: string, fileRootUrl: string, filename: string, scene: Scene, rootName: string, position: Vector3=Vector3.Zero()) {
-    const data = await BABYLON.SceneLoader.ImportMeshAsync(meshNames, fileRootUrl, filename, scene);
+    const data = await BABYLON.SceneLoader.ImportMeshAsync(meshNames, fileRootUrl, filename, scene, (evt) => {
+        // Update the progress bar and its label.
+        let loadedPercent;
+        if (evt.lengthComputable) {
+            loadedPercent = evt.loaded * 100 / evt.total;
+        } else {
+            const dlCount = evt.loaded / (1024 * 1024);
+            loadedPercent = Math.floor(dlCount * 100.0) / 100.0;
+        }
+        // Assuming "loading-progress" of "gameLoadingScreen" is an existing HTML elem.
+        const loadingScreen = document.getElementById("gameLoadingScreen");
+        const elms = loadingScreen.getElementsByTagName("*");
+        for (let i=0; i < elms.length; i++) {
+            if (elms[i].id === "loading-progress") {
+                const progress = elms[i] as HTMLProgressElement;
+                progress.value = loadedPercent;
+            } else if (elms[i].id === "loading-progress-label") {
+                const label = elms[i] as HTMLLabelElement;
+                label.textContent = "Loading " + rootName;
+            }
+        }
+    });
     const newMeshes = data.meshes;
     const root = new BABYLON.TransformNode(rootName, scene);
     newMeshes.forEach((mesh) => {

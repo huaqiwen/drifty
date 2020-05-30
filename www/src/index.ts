@@ -5,10 +5,11 @@ import * as Builder from "./builder";
 import {Direction} from "./types";
 import {Road} from "./models/road";
 import {Game} from "./settings";
+import {GameLoadingScreen} from "./models/GameLoadingSreen";
 // import * as BBMaterials from "babylonjs-materials";
 
 
-const canvas = document.getElementById("main_canvas") as HTMLCanvasElement;
+const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
 const engine = new Engine(canvas, true);
 
 let actionState = Direction.Still;
@@ -25,6 +26,10 @@ let movement = {
 
 async function createScene () {
     let inGameCars = ["viper", "aventador", "shelby1967"];
+
+    // create loading screen
+    engine.loadingScreen = new GameLoadingScreen("Loading meshes to scene.");
+    engine.displayLoadingUI();
 
     // create scene
     const scene = new Scene(engine);
@@ -67,6 +72,9 @@ async function createScene () {
         window.addEventListener('keyup', keyup);
     });
 
+    // Hide loading screen.
+    engine.hideLoadingUI();
+
     return scene;
 }
 
@@ -80,42 +88,6 @@ createScene().then((result) => {
         aventador_root.position.z += 1.5 * movement.forward;
         aventador_root.position.x += 1.5 * movement.rightward;
         aventador_root.rotation = new Vector3(0, Math.PI / 2 + movement.rotationDelta, 0);
-
-        // console.log(movement.forward, movement.rightward);
-
-        /*
-        if (actionState == Direction.Forward) {
-            scene.getCameraByName("followCam").rotationOffset = 180;
-            aventador_root.rotation = new Vector3(0, Math.PI / 2, 0);
-            aventador_root.position.z += 1.5;
-        } else if (actionState == Direction.Right ) {
-            scene.getCameraByName("followCam").rotationOffset = 240;
-            aventador_root.rotation = new Vector3(0, Math.PI, 0);
-            aventador_root.position.x += 1.5;
-        }
-
-         */
-
-        /*
-        scene.actionManager = new BABYLON.ActionManager(scene);
-        // when SPACE key pressed, go right, actionState = -1
-        scene.actionManager.registerAction(
-            new BABYLON.ExecuteCodeAction(
-                { trigger: BABYLON.ActionManager.OnKeyDownTrigger, parameter: " " },
-                () => {
-                    actionState = Direction.Right;
-                }
-            )
-        );
-        // when SPACE key released, go left, actionState = 1
-        scene.actionManager.registerAction(
-            new BABYLON.ExecuteCodeAction(
-                { trigger: BABYLON.ActionManager.OnKeyUpTrigger, parameter: " " },
-                () => { actionState = Direction.Forward; }
-            )
-        );
-
-         */
 
         scene.render();
     });
