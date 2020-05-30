@@ -19,11 +19,27 @@
         /* remove the scrollbars */
         display: block;
       }
+
+      #gameLoadingScreen {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        color: white;
+        font-size: 50px;
+        text-align: center;
+        background-color: #6396D8;
+        z-index: 9999;
+      }
     </style>
   </head>
 
   <body>
-    <canvas id="main_canvas"></canvas>
+    <div id="gameLoadingScreen">
+      <label id="loading-progress-label" for="loading-progress">Loading...</label>
+      <progress id="loading-progress" value="0" max="100"></progress>
+    </div>
+
+    <canvas id="main-canvas"></canvas>
 
     <script src="./bootstrap.js"></script>
   </body>
