@@ -19,6 +19,7 @@ import { Game } from './settings';
  */
 export async function createModelNode(meshNames: string, fileRootUrl: string, filename: string, scene: Scene, rootName: string, position: Vector3=Vector3.Zero()) {
     const data = await BABYLON.SceneLoader.ImportMeshAsync(meshNames, fileRootUrl, filename, scene, (evt) => {
+        // Update the progress bar and its label.
         let loadedPercent;
         if (evt.lengthComputable) {
             loadedPercent = evt.loaded * 100 / evt.total;
