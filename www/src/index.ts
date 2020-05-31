@@ -47,7 +47,7 @@ async function createScene () {
     light.intensity = 2.0;
 
     // Create road
-    const road = new Road(50, length => length / 20);
+    road = new Road(50, length => length / 20);
     Builder.createRoadMesh(road, scene);
 
     // Create cars
@@ -79,11 +79,20 @@ async function createScene () {
 }
 
 let scene;
+let road: Road;
+
 createScene().then((result) => {
     scene = result;
 
     engine.runRenderLoop(function () {
         const aventador_root = scene.getNodeByName("aventador");
+
+        if (movement.state != Direction.Fall && !road.contains(aventador_root.position, Game.ROAD_CONFIG.width)) {
+            movement.state = Direction.Fall;
+            window.removeEventListener('keydown', keydown);
+            window.removeEventListener('keyup', keyup);
+            fall();
+        }
 
         aventador_root.position.z += 1.5 * movement.forward;
         aventador_root.position.x += 1.5 * movement.rightward;
@@ -143,6 +152,13 @@ async function keyup(e) {
         }
 
         movement.state = Direction.Forward;
+    }
+}
+
+async function fall() {
+    for (let i=0; i < 100; i++) {
+        movement.downward += 0.00981;
+        await sleep(10);
     }
 }
 
