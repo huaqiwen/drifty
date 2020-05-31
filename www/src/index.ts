@@ -87,6 +87,7 @@ createScene().then((result) => {
 
         aventador_root.position.z += 1.5 * movement.forward;
         aventador_root.position.x += 1.5 * movement.rightward;
+        aventador_root.position.y -= 1.5 * movement.downward;
         aventador_root.rotation = new Vector3(0, Math.PI / 2 + movement.rotationDelta, 0);
 
         scene.render();
@@ -142,10 +143,14 @@ async function keyup(e) {
         }
 
         movement.state = Direction.Forward;
-
     }
 }
 
+/**
+ * Sleeps the current thread of the input time.
+ *
+ * @param ms - sleep time in milisecond
+ */
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }

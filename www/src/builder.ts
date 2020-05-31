@@ -51,6 +51,13 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
 }
 
 
+/**
+ * Create a car mesh based on given information.
+ *
+ * @param car - a Car object that defines the information of the to-be-imported car
+ * @param position - a Vector3 that defines the starting position of the car
+ * @param scene - scene that owns the car
+ */
 export async function createCar(car: Car, position: Vector3, scene: Scene) {
     await createModelNode("", car.fileRootUrl, car.filename, scene, car.name, position);
     const carNode = scene.getNodeByName(car.name) as BABYLON.TransformNode;
@@ -68,7 +75,7 @@ export async function createCar(car: Car, position: Vector3, scene: Scene) {
  * @param targetName - a string that defines the name of the locked target of the camera
  * @param position - a Vector3 that defines the starting position of the camera
  * @param radius - a number that defines the distance the follow camera should follow an object at
- * @param heightOffset - a number that defines a height offset between the camera and the object it follows.
+ * @param heightOffset - a number that defines a height offset between the camera and the object it follows
  * @param rotationOffset - a number in degrees that define a rotation offset between the camera and the object it follows
  * @param isNode - defines whether the targetName represents a TransformNode (true) or a Mesh(false)
  * @param attachCtrl - defines whether to attach camera's control to `canvas`
