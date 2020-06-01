@@ -8,6 +8,14 @@ import { Car} from "./models/car";
 import { Game } from './settings';
 
 
+/**
+ * Creates a skybox for the input scene.
+ *
+ * @param skyboxName - a string that defines the name of the created skybox
+ * @param imgDir - a string that defines the path of images of the skybox texture
+ * @param size - a number that defines the size of the skybox
+ * @param scene - the scene that owns the skybox
+ */
 export function createSkybox(skyboxName: string, imgDir: string, size: number, scene: Scene) {
     const skybox = BABYLON.MeshBuilder.CreateBox(skyboxName, {size: size}, scene);
     const skyboxMaterial = new BABYLON.StandardMaterial(skyboxName, scene);
@@ -23,7 +31,7 @@ export function createSkybox(skyboxName: string, imgDir: string, size: number, s
 
 
 /**
- * Imports meshes in a file and links them to a root `TransformNode`
+ * Imports meshes in a file and links them to a root `TransformNode`.
  *
  * @param meshNames - an array of mesh names, a single mesh name, or empty string for all meshes that filter what meshes are imported
  * @param fileRootUrl - a string that defines the root url for the scene and resources or the concatenation of rootURL and filename
@@ -82,7 +90,7 @@ export async function createCar(car: Car, position: Vector3, scene: Scene) {
 
 
 /**
- * Creates a BABYLON FollowCamera that follows a given node or mesh
+ * Creates a BABYLON FollowCamera that follows a given node or mesh.
  *
  * @param camName - a string that defines the name of the created FollowCamera
  * @param scene - scene that owns the camera
@@ -114,7 +122,7 @@ export function createFollowCamera(camName: string, scene: Scene, canvas: HTMLCa
 
 
 /**
- * Creates a 3D button with onPointerUpObservable event
+ * Creates a 3D button with onPointerUpObservable event.
  *
  * @param name - a string defines the name of the button
  * @param lb_text - a string defines the text content of the button
