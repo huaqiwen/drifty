@@ -7,6 +7,21 @@ import { Road } from './models/road';
 import { Car} from "./models/car";
 import { Game } from './settings';
 
+
+export function createSkybox(skyboxName: string, imgDir: string, size: number, scene: Scene) {
+    const skybox = BABYLON.MeshBuilder.CreateBox(skyboxName, {size: size}, scene);
+    const skyboxMaterial = new BABYLON.StandardMaterial(skyboxName, scene);
+    skyboxMaterial.backFaceCulling = false;
+    skyboxMaterial.disableLighting = true;
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(imgDir, scene);
+    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    skybox.material = skyboxMaterial;
+    skybox.infiniteDistance = true;
+}
+
+
 /**
  * Imports meshes in a file and links them to a root `TransformNode`
  *

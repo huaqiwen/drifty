@@ -32,7 +32,7 @@ async function createScene () {
 
     // create scene
     const scene = new Scene(engine);
-    scene.clearColor = Game.SCENE_COLOR;
+    Builder.createSkybox("skyBox", "./textures/skybox/skybox", 1000, scene);
 
     // Create light
     const light = new BABYLON.HemisphericLight("light", Game.LIGHT_POS, scene);
@@ -167,6 +167,9 @@ async function fall() {
     }
 }
 
+/**
+ * Start accelerating (movement.forward 0 -> 1).
+ */
 async function accel() {
     for (let i=0; i < 60; i++) {
         movement.forward += 1/60;
