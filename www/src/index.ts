@@ -12,7 +12,6 @@ import {GameLoadingScreen} from "./models/GameLoadingSreen";
 const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
 const engine = new Engine(canvas, true);
 
-let actionState = Direction.Still;
 let isSpaceKeyDown = false;
 
 let movement = {
@@ -35,20 +34,15 @@ async function createScene () {
     const scene = new Scene(engine);
     scene.clearColor = Game.SCENE_COLOR;
 
-    // create GUI manager and action panel
-    const guiManager = new GUI.GUI3DManager(scene);
-    const panel = new GUI.StackPanel3D(false);
-    guiManager.addControl(panel);
-    panel.margin = Game.PANEL_CONFIG.margin;
-    panel.position = Game.PANEL_CONFIG.position;
-
     // Create light
     const light = new BABYLON.HemisphericLight("light", Game.LIGHT_POS, scene);
     light.intensity = 2.0;
 
-    // Create road
+    // Create road and its material
     road = new Road(50, length => length / 20);
-    Builder.createRoadMesh(road, scene);
+    const roadMaterial = new BABYLON.StandardMaterial("roadMaterial", scene);
+    roadMaterial.diffuseTexture = new BABYLON.Texture("./models3d/gtr/rough_asphalt2.jpg", scene);
+    Builder.createRoadMesh(road, scene, roadMaterial);
 
     // Create cars
     let importCarPromises = []
@@ -59,17 +53,25 @@ async function createScene () {
     Builder.createFollowCamera("followCam", scene, canvas, "aventador", new Vector3(500, 500, 0),
         12, 7, 170, true, false);
 
+    // create GUI manager and action panel
+    const guiManager = new GUI.GUI3DManager(scene);
+    const panel = new GUI.StackPanel3D(false);
+    guiManager.addControl(panel);
+    panel.margin = Game.PANEL_CONFIG.margin;
+    panel.position = Game.PANEL_CONFIG.position;
+
     // Create buttons
     Builder.createRegButton3D("startButton", "Start!", panel, () => {
+        // Game start setup
         panel.removeControl(panel.children[0]);
         const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
         cam.radius = 50; cam.heightOffset = 20; cam.rotationOffset = 180;
 
-        movement.forward = 1;
-        movement.state = Direction.Forward;
-
         window.addEventListener('keydown', keydown);
         window.addEventListener('keyup', keyup);
+
+        movement.state = Direction.Forward;
+        accel();
     });
 
     // Hide loading screen.
@@ -84,14 +86,17 @@ let road: Road;
 createScene().then((result) => {
     scene = result;
 
-    engine.runRenderLoop(function () {
+    engine.runRenderLoop(async function () {
         const aventador_root = scene.getNodeByName("aventador");
 
+        // Game over check
         if (movement.state != Direction.Fall && !road.contains(aventador_root.position, Game.ROAD_CONFIG.width)) {
             movement.state = Direction.Fall;
             window.removeEventListener('keydown', keydown);
             window.removeEventListener('keyup', keyup);
-            fall();
+            await fall();
+            alert("Game over!")
+            location.reload();
         }
 
         aventador_root.position.z += 1.5 * movement.forward;
@@ -103,15 +108,9 @@ createScene().then((result) => {
     });
 });
 
-//--- resize canvas on window resize
-window.addEventListener('resize', resize, false);
-window.addEventListener('load', resize, false);
-
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-
+/**
+ * Start turning right when space key is pressed.
+ */
 async function keydown(e) {
     // Space key pressed.
     if (e.code == 'Space') {
@@ -134,6 +133,9 @@ async function keydown(e) {
     }
 }
 
+/**
+ * Start turning left when space key is released.
+ */
 async function keyup(e) {
     // Space key released.
     if (e.code == 'Space') {
@@ -155,10 +157,20 @@ async function keyup(e) {
     }
 }
 
+/**
+ * Start falling, accelarate at 0.981.
+ */
 async function fall() {
     for (let i=0; i < 100; i++) {
         movement.downward += 0.00981;
         await sleep(10);
+    }
+}
+
+async function accel() {
+    for (let i=0; i < 60; i++) {
+        movement.forward += 1/60;
+        await sleep(1000/60);
     }
 }
 
@@ -169,4 +181,13 @@ async function fall() {
  */
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+//--- resize canvas on window resize
+window.addEventListener('resize', resize, false);
+window.addEventListener('load', resize, false);
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }

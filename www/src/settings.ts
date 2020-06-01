@@ -61,5 +61,5 @@ export namespace Game {
     /**
      * defines the background color of the game scene
      */
-    export const SCENE_COLOR = new BABYLON.Color4(255 / 255, 255 / 255, 255 / 255, 1.0);
+    export const SCENE_COLOR = new BABYLON.Color4(52 / 255, 235 / 255, 216 / 255, 1.0);
 }

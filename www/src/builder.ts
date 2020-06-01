@@ -104,15 +104,24 @@ export function createFollowCamera(camName: string, scene: Scene, canvas: HTMLCa
  * @param name - a string defines the name of the button
  * @param lb_text - a string defines the text content of the button
  * @param panel - the panel that owns the button
+ * @param buttonMaterial - the material of the button
  * @param onClick - the callback that will be executed when button pressed and released
  * @param fontSize - a number defines the font size of the text content of the button
  * @param textColor - a string defines the color of the text content of the button
  */
-export function createRegButton3D(name: string, lb_text: string, panel: GUI.StackPanel3D, onClick: () => void, fontSize: number=80, textColor: string="white") {
+export function createRegButton3D(name: string, lb_text: string, panel: GUI.StackPanel3D, onClick: () => void,
+                                  fontSize: number=80, textColor: string="white", buttonMaterial?: BABYLON.StandardMaterial) {
     let button = new GUI.Button3D(name);
     panel.addControl(button);
     button.onPointerUpObservable.add(onClick);
     console.log(button.mesh);
+
+    // style the button
+    if (typeof buttonMaterial === "undefined") {
+        button.mesh.material.alpha = 0.83;
+    } else {
+        button.mesh.material = buttonMaterial;
+    }
 
     // create text label
     const txt = new GUI.TextBlock();
@@ -128,10 +137,9 @@ export function createRegButton3D(name: string, lb_text: string, panel: GUI.Stac
  * 
  * @param road - the road object used to create the mesh
  * @param scene - the scene in which to create the mesh
+ * @param material - the material of the road mesh
  */
-export function createRoadMesh(road: Road, scene: Scene) {
-    const roadMaterial = new BABYLON.StandardMaterial('road', scene);
-    roadMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+export function createRoadMesh(road: Road, scene: Scene, roadMaterial: BABYLON.StandardMaterial) {
     
     let count = 0;
     let currentX = 0;
