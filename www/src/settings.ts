@@ -32,9 +32,9 @@ export namespace Game {
      * defines the starting position of the three cars
      */
     export const CAR_START_POS = [
-        new BABYLON.Vector3(5, 0, 0),
-        new BABYLON.Vector3(15, 0, 0),
-        new BABYLON.Vector3(25, 0, 0),
+        new BABYLON.Vector3(5, 0, 4.3),
+        new BABYLON.Vector3(15, 0, 4.3),
+        new BABYLON.Vector3(25, 0, 4.3),
     ]
 
     /**
@@ -42,14 +42,14 @@ export namespace Game {
      */
     export const ROAD_CONFIG = {
         width: 30,
-        thickness: 2,
+        thickness: 1,
     }
 
     /**
      * defines the position and margin of the buttons panel
      */
     export const PANEL_CONFIG = {
-        position: new BABYLON.Vector3(CAR_START_POS[1].x, 4, 0),
+        position: new BABYLON.Vector3(CAR_START_POS[1].x, 4, 5),
         margin: 0.03,
     }
 

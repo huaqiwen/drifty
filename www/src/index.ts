@@ -13,6 +13,7 @@ const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
 const engine = new Engine(canvas, true);
 
 let isSpaceKeyDown = false;
+let isGameStarted = false;
 
 let movement = {
     forward: 0,
@@ -26,53 +27,45 @@ let movement = {
 async function createScene () {
     let inGameCars = ["viper", "aventador", "shelby1967"];
 
-    // create loading screen
+    // Create loading screen.
     engine.loadingScreen = new GameLoadingScreen("Loading meshes to scene.");
     engine.displayLoadingUI();
 
-    // create scene
+    // Create scene.
     const scene = new Scene(engine);
+
+    // Create skybox.
     Builder.createSkybox("skyBox", "./textures/skybox/skybox", 1000, scene);
 
-    // Create light
-    const light = new BABYLON.HemisphericLight("light", Game.LIGHT_POS, scene);
-    light.intensity = 2.0;
+    // Create light.
+    scene.createDefaultLight();
 
-    // Create road and its material
+    // Create road and its material.
     road = new Road(50, length => length / 20);
     const roadMaterial = new BABYLON.StandardMaterial("roadMaterial", scene);
     roadMaterial.diffuseTexture = new BABYLON.Texture("./models3d/gtr/rough_asphalt2.jpg", scene);
     Builder.createRoadMesh(road, scene, roadMaterial);
 
-    // Create cars
+    // Create cars.
     let importCarPromises = []
     for (let i = 0; i < 3; i++) { importCarPromises.push(Builder.createCar(Game.CARS[inGameCars[i]], Game.CAR_START_POS[i], scene)); }
     await Promise.all(importCarPromises);
 
-    // Create follow camera
+    // Create follow camera.
     Builder.createFollowCamera("followCam", scene, canvas, "aventador", new Vector3(500, 500, 0),
         12, 7, 170, true, false);
 
-    // create GUI manager and action panel
+    // Create GUI manager and action panel.
     const guiManager = new GUI.GUI3DManager(scene);
-    const panel = new GUI.StackPanel3D(false);
+    panel = new GUI.StackPanel3D(false);
     guiManager.addControl(panel);
     panel.margin = Game.PANEL_CONFIG.margin;
     panel.position = Game.PANEL_CONFIG.position;
 
-    // Create buttons
-    Builder.createRegButton3D("startButton", "Start!", panel, () => {
-        // Game start setup
-        panel.removeControl(panel.children[0]);
-        const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
-        cam.radius = 50; cam.heightOffset = 20; cam.rotationOffset = 180;
-
-        window.addEventListener('keydown', keydown);
-        window.addEventListener('keyup', keyup);
-
-        movement.state = Direction.Forward;
-        accel();
-    });
+    // Create buttons and event listeners.
+    Builder.createRegButton3D("startButton", "Start!", panel, setupGame);
+    window.addEventListener('keydown', keydown);
+    window.addEventListener('keyup', keyup);
 
     // Hide loading screen.
     engine.hideLoadingUI();
@@ -82,6 +75,7 @@ async function createScene () {
 
 let scene;
 let road: Road;
+let panel: GUI.StackPanel3D;
 
 createScene().then((result) => {
     scene = result;
@@ -109,14 +103,34 @@ createScene().then((result) => {
 });
 
 /**
+ * Game start setup
+ */
+function setupGame() {
+    isGameStarted = true;
+
+    panel.removeControl(panel.children[0]);
+    const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
+    cam.radius = 50; cam.heightOffset = 20; cam.rotationOffset = 180;
+
+    movement.state = Direction.Forward;
+    // noinspection JSIgnoredPromiseFromCall
+    accel();
+}
+
+/**
  * Start turning right when space key is pressed.
  */
 async function keydown(e) {
     // Space key pressed.
     if (e.code == 'Space') {
-
         if (isSpaceKeyDown) return;
         isSpaceKeyDown = true;
+
+        // Game not started
+        if (!isGameStarted) {
+            setupGame();
+            return;
+        }
 
         for (let i=movement.turningTicks; i < 60; i++) {
             // Space key released, quit turning action.
