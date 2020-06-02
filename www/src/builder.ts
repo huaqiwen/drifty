@@ -75,7 +75,7 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
 
 
 /**
- * Create a car mesh based on given information.
+ * Create a car node based on given information.
  *
  * @param car - a Car object that defines the information of the to-be-imported car
  * @param position - a Vector3 that defines the starting position of the car
@@ -160,7 +160,7 @@ export function createRegButton3D(name: string, lb_text: string, panel: GUI.Stac
  * 
  * @param road - the road object used to create the mesh
  * @param scene - the scene in which to create the mesh
- * @param material - the material of the road mesh
+ * @param roadMaterial - the material of the road mesh
  */
 export function createRoadMesh(road: Road, scene: Scene, roadMaterial: BABYLON.StandardMaterial) {
     
@@ -190,9 +190,10 @@ export function createRoadMesh(road: Road, scene: Scene, roadMaterial: BABYLON.S
         segmentMesh.material = roadMaterial;
         segmentMesh.position = new Vector3(
             currentZ * Game.ROAD_CONFIG.width + xLength / 2,
-            -Game.ROAD_CONFIG.thickness,
+            -Game.ROAD_CONFIG.thickness / 2,
             currentX * Game.ROAD_CONFIG.width + zLength / 2,
         );
+        segmentMesh.receiveShadows = true;
         
         if (directionIsRight) {
             currentZ += segment;

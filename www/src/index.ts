@@ -38,7 +38,13 @@ async function createScene () {
     Builder.createSkybox("skyBox", "./textures/skybox/skybox", 1000, scene);
 
     // Create light.
-    scene.createDefaultLight();
+    // scene.createDefaultLight();
+    // // Get the light so it can be used for the shadow generator later.
+    // const light = scene.lights[scene.lights.length - 1] as BABYLON.IShadowLight;
+
+    light = new BABYLON.DirectionalLight("dir01", new BABYLON.Vector3(-2, -3, 0), scene);
+    light.position = new BABYLON.Vector3(20, 20, 20);
+    light.intensity = 1.4;
 
     // Create road and its material.
     road = new Road(50, length => length / 20);
@@ -50,6 +56,14 @@ async function createScene () {
     let importCarPromises = []
     for (let i = 0; i < 3; i++) { importCarPromises.push(Builder.createCar(Game.CARS[inGameCars[i]], Game.CAR_START_POS[i], scene)); }
     await Promise.all(importCarPromises);
+
+    // Create shadows for the cars.
+    const shadowGenerator = new BABYLON.ShadowGenerator(1024, light);
+    shadowGenerator.usePoissonSampling = true;
+    // TODO: make shaddow work on all `inGameCars` (without losing performance)
+    ["aventador"].forEach(carName => {
+        shadowGenerator.getShadowMap().renderList.push(...scene.getNodeByName(carName).getChildMeshes(false));
+    });
 
     // Create follow camera.
     Builder.createFollowCamera("followCam", scene, canvas, "aventador", new Vector3(500, 500, 0),
@@ -74,6 +88,7 @@ async function createScene () {
 }
 
 let scene;
+let light;
 let road: Road;
 let panel: GUI.StackPanel3D;
 
@@ -81,10 +96,10 @@ createScene().then((result) => {
     scene = result;
 
     engine.runRenderLoop(async function () {
-        const aventador_root = scene.getNodeByName("aventador");
+        const aventadorRoot = scene.getNodeByName("aventador");
 
         // Game over check
-        if (movement.state != Direction.Fall && !road.contains(aventador_root.position, Game.ROAD_CONFIG.width)) {
+        if (movement.state != Direction.Fall && !road.contains(aventadorRoot.position, Game.ROAD_CONFIG.width)) {
             movement.state = Direction.Fall;
             window.removeEventListener('keydown', keydown);
             window.removeEventListener('keyup', keyup);
@@ -93,10 +108,14 @@ createScene().then((result) => {
             location.reload();
         }
 
-        aventador_root.position.z += 1.5 * movement.forward;
-        aventador_root.position.x += 1.5 * movement.rightward;
-        aventador_root.position.y -= 1.5 * movement.downward;
-        aventador_root.rotation = new Vector3(0, Math.PI / 2 + movement.rotationDelta, 0);
+        // Update car position.
+        aventadorRoot.position.z += 1.5 * movement.forward;
+        aventadorRoot.position.x += 1.5 * movement.rightward;
+        aventadorRoot.position.y -= 1.5 * movement.downward;
+        aventadorRoot.rotation = new Vector3(0, Math.PI / 2 + movement.rotationDelta, 0);
+
+        // Update light position.
+        light.position = aventadorRoot.position.add(new BABYLON.Vector3(20, 20, 20));
 
         scene.render();
     });
