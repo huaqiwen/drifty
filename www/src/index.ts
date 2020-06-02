@@ -38,10 +38,6 @@ async function createScene () {
     Builder.createSkybox("skyBox", "./textures/skybox/skybox", 1000, scene);
 
     // Create light.
-    // scene.createDefaultLight();
-    // // Get the light so it can be used for the shadow generator later.
-    // const light = scene.lights[scene.lights.length - 1] as BABYLON.IShadowLight;
-
     light = new BABYLON.DirectionalLight("dir01", new BABYLON.Vector3(-2, -3, 0), scene);
     light.position = new BABYLON.Vector3(20, 20, 20);
     light.intensity = 1.4;
@@ -103,6 +99,8 @@ createScene().then((result) => {
             movement.state = Direction.Fall;
             window.removeEventListener('keydown', keydown);
             window.removeEventListener('keyup', keyup);
+            window.removeEventListener('touchstart', turnRight);
+            window.removeEventListener('touchend', turnForward);
             await fall();
             alert("Game over!")
             location.reload();
@@ -122,7 +120,7 @@ createScene().then((result) => {
 });
 
 /**
- * Game start setup
+ * Game start setup.
  */
 function setupGame() {
     isGameStarted = true;
@@ -130,6 +128,10 @@ function setupGame() {
     panel.removeControl(panel.children[0]);
     const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
     cam.radius = 50; cam.heightOffset = 20; cam.rotationOffset = 180;
+
+    // For mobile devices.
+    window.addEventListener("touchstart", turnForward);
+    window.addEventListener("touchend", turnRight);
 
     movement.state = Direction.Forward;
     // noinspection JSIgnoredPromiseFromCall
@@ -142,28 +144,32 @@ function setupGame() {
 async function keydown(e) {
     // Space key pressed.
     if (e.code == 'Space') {
-        if (isSpaceKeyDown) return;
-        isSpaceKeyDown = true;
-
-        // Game not started
-        if (!isGameStarted) {
-            setupGame();
-            return;
-        }
-
-        for (let i=movement.turningTicks; i < 60; i++) {
-            // Space key released, quit turning action.
-            if (!isSpaceKeyDown) return;
-
-            movement.turningTicks = i + 1;
-            movement.rightward += 1 / 60;
-            movement.forward -= 1 / 60;
-            movement.rotationDelta += (1 / 60) * Math.PI / 2;
-            await sleep(10);
-        }
-
-        movement.state = Direction.Right;
+        await turnForward();
     }
+}
+
+async function turnForward() {
+    if (isSpaceKeyDown) return;
+    isSpaceKeyDown = true;
+
+    // Game not started
+    if (!isGameStarted) {
+        setupGame();
+        return;
+    }
+
+    for (let i=movement.turningTicks; i < 60; i++) {
+        // Space key released, quit turning action.
+        if (!isSpaceKeyDown) return;
+
+        movement.turningTicks = i + 1;
+        movement.rightward += 1 / 60;
+        movement.forward -= 1 / 60;
+        movement.rotationDelta += (1 / 60) * Math.PI / 2;
+        await sleep(10);
+    }
+
+    movement.state = Direction.Right;
 }
 
 /**
@@ -172,22 +178,26 @@ async function keydown(e) {
 async function keyup(e) {
     // Space key released.
     if (e.code == 'Space') {
-
-        isSpaceKeyDown = false;
-
-        for (let i=movement.turningTicks; i > 0; i--) {
-            // Space key pressed, quit turning action.
-            if (isSpaceKeyDown) return;
-
-            movement.turningTicks = i - 1;
-            movement.rightward -= 1 / 60;
-            movement.forward += 1 / 60;
-            movement.rotationDelta -= (1 / 60) * Math.PI / 2;
-            await sleep(10);
-        }
-
-        movement.state = Direction.Forward;
+        await turnRight();
     }
+}
+
+async function turnRight() {
+    isSpaceKeyDown = false;
+
+    for (let i=movement.turningTicks; i > 0; i--) {
+        // Space key pressed, quit turning action.
+        if (isSpaceKeyDown) return;
+
+        movement.turningTicks = i - 1;
+        movement.rightward -= 1 / 60;
+        movement.forward += 1 / 60;
+        movement.rotationDelta -= (1 / 60) * Math.PI / 2;
+        await sleep(10);
+    }
+
+    movement.state = Direction.Forward;
+
 }
 
 /**
