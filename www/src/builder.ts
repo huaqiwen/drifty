@@ -125,14 +125,14 @@ export function createFollowCamera(camName: string, scene: Scene, canvas: HTMLCa
  * Creates a 3D button with onPointerUpObservable event.
  *
  * @param name - a string defines the name of the button
- * @param lb_text - a string defines the text content of the button
+ * @param lbText - a string defines the text content of the button
  * @param panel - the panel that owns the button
  * @param buttonMaterial - the material of the button
  * @param onClick - the callback that will be executed when button pressed and released
  * @param fontSize - a number defines the font size of the text content of the button
  * @param textColor - a string defines the color of the text content of the button
  */
-export function createRegButton3D(name: string, lb_text: string, panel: GUI.StackPanel3D, onClick: () => void,
+export function createRegButton3D(name: string, lbText: string, panel: GUI.StackPanel3D, onClick: () => void,
                                   fontSize: number=80, textColor: string="white", buttonMaterial?: BABYLON.StandardMaterial) {
     let button = new GUI.Button3D(name);
     panel.addControl(button);
@@ -148,10 +148,33 @@ export function createRegButton3D(name: string, lb_text: string, panel: GUI.Stac
 
     // create text label
     const txt = new GUI.TextBlock();
-    txt.text = lb_text;
+    txt.text = lbText;
     txt.color = textColor;
     txt.fontSize = fontSize;
     button.content = txt;
+}
+
+
+/**
+ * Creates and returns a 2d GUI text block.
+ *
+ * @param name - a string that defines the name of the textblock
+ * @param text - a string that defines the text of the textblock
+ * @param vAlign - a number (either 0, 1, 2) that defines the vertical alignment of the textblock
+ * @param hAlign - a number (either 0, 1, 2) that defines the horizontal alignment of the textblock
+ * @param fontSize - a number that defines the font size of the textblock
+ * @param color - a string that defines the color of the textblock
+ *
+ * @return the created 2d GUI text block
+ */
+export function createGUITextBlock(name: string, text: string, vAlign: number, hAlign: number, fontSize: number=20, color: string="white"): GUI.TextBlock {
+    const label = new GUI.TextBlock(name, text);
+    label.textVerticalAlignment = vAlign;
+    label.textHorizontalAlignment = hAlign;
+    label.fontSize = fontSize;
+    label.color = color;
+
+    return label;
 }
 
 

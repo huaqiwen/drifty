@@ -1,12 +1,13 @@
 import * as BABYLON from "babylonjs";
 import {Engine, Scene, Vector3} from "babylonjs";
 import * as GUI from "babylonjs-gui";
+
 import * as Builder from "./builder";
 import {Direction} from "./types";
-import {Road} from "./models/road";
 import {Game} from "./settings";
+
+import {Road} from "./models/road";
 import {GameLoadingScreen} from "./models/GameLoadingSreen";
-// import * as BBMaterials from "babylonjs-materials";
 
 
 const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
@@ -19,13 +20,14 @@ let movement = {
     forward: 0,
     rightward: 0,
     downward: 0,
+    distTraveled: 0,
     rotationDelta: 0,
     turningTicks: 0,
     state: Direction.Still
 }
 
 async function createScene () {
-    let inGameCars = ["viper", "aventador", "shelby1967"];
+    let inGameCars = ["aventador"];
 
     // Create loading screen.
     engine.loadingScreen = new GameLoadingScreen("Loading meshes to scene.");
@@ -50,14 +52,14 @@ async function createScene () {
 
     // Create cars.
     let importCarPromises = []
-    for (let i = 0; i < 3; i++) { importCarPromises.push(Builder.createCar(Game.CARS[inGameCars[i]], Game.CAR_START_POS[i], scene)); }
+    for (let i = 0; i < inGameCars.length; i++) { importCarPromises.push(Builder.createCar(Game.CARS[inGameCars[i]], Game.CAR_START_POS[i], scene)); }
     await Promise.all(importCarPromises);
 
     // Create shadows for the cars.
     const shadowGenerator = new BABYLON.ShadowGenerator(1024, light);
     shadowGenerator.usePoissonSampling = true;
     // TODO: make shaddow work on all `inGameCars` (without losing performance)
-    ["aventador"].forEach(carName => {
+    inGameCars.forEach(carName => {
         shadowGenerator.getShadowMap().renderList.push(...scene.getNodeByName(carName).getChildMeshes(false));
     });
 
@@ -65,12 +67,20 @@ async function createScene () {
     Builder.createFollowCamera("followCam", scene, canvas, "aventador", new Vector3(500, 500, 0),
         12, 7, 170, true, false);
 
-    // Create GUI manager and action panel.
+    // Create 3D GUI manager and action panel.
     const guiManager = new GUI.GUI3DManager(scene);
     panel = new GUI.StackPanel3D(false);
     guiManager.addControl(panel);
     panel.margin = Game.PANEL_CONFIG.margin;
     panel.position = Game.PANEL_CONFIG.position;
+
+    // Create 2D GUI.
+    const guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("gui2d", true);
+    distLabel = Builder.createGUITextBlock("distLabel", "Distance traveled: 0", 0, 0);
+    fpsLabel = Builder.createGUITextBlock("fpsLabel", "FPS: 0", 0, 1);
+    distLabel.paddingTop = 5; distLabel.paddingLeft = 10;
+    fpsLabel.paddingTop = 5; fpsLabel.paddingRight = 10;
+    guiTexture.addControl(distLabel); guiTexture.addControl(fpsLabel);
 
     // Create buttons and event listeners.
     Builder.createRegButton3D("startButton", "Start!", panel, setupGame);
@@ -86,7 +96,11 @@ async function createScene () {
 let scene;
 let light;
 let road: Road;
+
+// GUI elements.
 let panel: GUI.StackPanel3D;
+let distLabel: GUI.TextBlock;
+let fpsLabel: GUI.TextBlock;
 
 createScene().then((result) => {
     scene = result;
@@ -111,6 +125,13 @@ createScene().then((result) => {
         aventadorRoot.position.x += 1.5 * movement.rightward;
         aventadorRoot.position.y -= 1.5 * movement.downward;
         aventadorRoot.rotation = new Vector3(0, Math.PI / 2 + movement.rotationDelta, 0);
+
+        // Accumulate distance traveled *if not fallen*
+        if (movement.state != Direction.Fall) movement.distTraveled = movement.distTraveled + 1.5 * movement.forward + 1.5 * movement.rightward;
+
+        // Update distance label & fps label
+        distLabel.text = "Distance traveled: " + (movement.distTraveled / 10).toFixed();
+        fpsLabel.text = "FPS: " + engine.getFps().toFixed();
 
         // Update light position.
         light.position = aventadorRoot.position.add(new BABYLON.Vector3(20, 20, 20));
