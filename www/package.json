@@ -27,6 +27,7 @@
   "dependencies": {
     "babylonjs": "^4.1.0",
     "babylonjs-gui": "^4.1.0",
+    "bootstrap-vue": "^2.15.0",
     "drifty": "file:../pkg",
     "kind-of": ">=6.0.3",
     "minimist": ">=0.2.1",
@@ -35,10 +36,12 @@
   "devDependencies": {
     "babylonjs-materials": "^4.1.0",
     "copy-webpack-plugin": "^5.0.0",
+    "css-loader": "^3.5.3",
     "hello-wasm-pack": "^0.1.0",
     "ts-loader": "^7.0.4",
     "typescript": "^3.9.2",
     "vue-loader": "^15.9.2",
+    "vue-style-loader": "^4.1.2",
     "vue-template-compiler": "^2.6.11",
     "webpack": "^4.29.3",
     "webpack-cli": "^3.1.0",
