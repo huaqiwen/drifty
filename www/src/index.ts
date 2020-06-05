@@ -20,7 +20,8 @@ let movement = {
     forward: 0,
     rightward: 0,
     downward: 0,
-    distTraveled: 0,
+    forwardDist: 0,
+    rightDist: 0,
     rotationDelta: 0,
     turningTicks: 0,
     state: Direction.Still
@@ -104,20 +105,18 @@ let fpsLabel: GUI.TextBlock;
 
 createScene().then((result) => {
     scene = result;
+    console.log(road.segments)
 
     engine.runRenderLoop(async function () {
         const aventadorRoot = scene.getNodeByName("aventador");
 
-        // Game over check
         if (movement.state != Direction.Fall && !road.contains(aventadorRoot.position, Game.ROAD_CONFIG.width)) {
             movement.state = Direction.Fall;
-            window.removeEventListener('keydown', keydown);
-            window.removeEventListener('keyup', keyup);
-            window.removeEventListener('touchstart', turnRight);
-            window.removeEventListener('touchend', turnForward);
-            await fall();
-            alert("Game over!")
-            location.reload();
+            if (road.isCarFinished(movement.forwardDist, movement.rightDist)) {
+                await Promise.all([endGame("You Win!"), fall()]);
+            } else {
+                await Promise.all([endGame("Game Over!"), fall()]);
+            }
         }
 
         // Update car position.
@@ -127,10 +126,13 @@ createScene().then((result) => {
         aventadorRoot.rotation = new Vector3(0, Math.PI / 2 + movement.rotationDelta, 0);
 
         // Accumulate distance traveled *if not fallen*
-        if (movement.state != Direction.Fall) movement.distTraveled = movement.distTraveled + 1.5 * movement.forward + 1.5 * movement.rightward;
+        if (movement.state != Direction.Fall) {
+            movement.forwardDist += 1.5 * movement.forward;
+            movement.rightDist += 1.5 * movement.rightward;
+        }
 
         // Update distance label & fps label
-        distLabel.text = "Distance traveled: " + (movement.distTraveled / 10).toFixed();
+        distLabel.text = "Distance traveled: " + ((movement.rightDist + movement.forwardDist) / 10).toFixed();
         fpsLabel.text = "FPS: " + engine.getFps().toFixed();
 
         // Update light position.
@@ -157,6 +159,21 @@ function setupGame() {
     movement.state = Direction.Forward;
     // noinspection JSIgnoredPromiseFromCall
     accel();
+}
+
+/**
+ * End the game, remove event listeners.
+ */
+async function endGame(message?: string) {
+    window.removeEventListener('keydown', keydown);
+    window.removeEventListener('keyup', keyup);
+    window.removeEventListener('touchstart', turnRight);
+    window.removeEventListener('touchend', turnForward);
+
+    // If `message` is not null, alert it
+    await sleep(600);
+    if (typeof message !== "undefined") alert(message);
+    location.reload();
 }
 
 /**

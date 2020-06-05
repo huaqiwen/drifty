@@ -167,7 +167,7 @@ export function createRegButton3D(name: string, lbText: string, panel: GUI.Stack
  *
  * @return the created 2d GUI text block
  */
-export function createGUITextBlock(name: string, text: string, vAlign: number, hAlign: number, fontSize: number=20, color: string="white"): GUI.TextBlock {
+export function createGUITextBlock(name: string, text: string, vAlign: number, hAlign: number, fontSize: number=30, color: string="white"): GUI.TextBlock {
     const label = new GUI.TextBlock(name, text);
     label.textVerticalAlignment = vAlign;
     label.textHorizontalAlignment = hAlign;
