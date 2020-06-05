@@ -11,6 +11,12 @@ import {GameLoadingScreen} from "./models/GameLoadingSreen";
 
 const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
 const engine = new Engine(canvas, true);
+var tireTrack;
+var trackArray = [[new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)],[new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)],
+                  [new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)],[new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)],
+                  [new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)],[new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)]];
+let prevPosition = new Vector3(0, 0, 0);
+
 
 let actionState = Direction.Still;
 let isSpaceKeyDown = false;
@@ -50,6 +56,9 @@ async function createScene () {
     const road = new Road(50, length => length / 20);
     Builder.createRoadMesh(road, scene);
 
+    // init tire track
+    tireTrack = Builder.initTireTracks(scene);
+
     // Create cars
     let importCarPromises = []
     for (let i = 0; i < 3; i++) { importCarPromises.push(Builder.createCar(Game.CARS[inGameCars[i]], Game.CAR_START_POS[i], scene)); }
@@ -72,6 +81,7 @@ async function createScene () {
         window.addEventListener('keyup', keyup);
     });
 
+
     // Hide loading screen.
     engine.hideLoadingUI();
 
@@ -88,6 +98,10 @@ createScene().then((result) => {
         aventador_root.position.z += 1.5 * movement.forward;
         aventador_root.position.x += 1.5 * movement.rightward;
         aventador_root.rotation = new Vector3(0, Math.PI / 2 + movement.rotationDelta, 0);
+
+        let newPosition = new Vector3(aventador_root.position.x, aventador_root.position.y +5 , aventador_root.position.z);
+        Builder.createTireTracks(prevPosition, newPosition, trackArray, scene, tireTrack);
+        prevPosition = newPosition;
 
         scene.render();
     });

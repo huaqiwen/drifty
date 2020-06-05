@@ -1,11 +1,12 @@
 import * as BABYLON from "babylonjs";
 import * as GUI from "babylonjs-gui";
-import { Scene, Vector3 } from "babylonjs";
+import { Scene, Vector3, Mesh } from "babylonjs";
 
 
 import { Road } from './models/road';
 import { Car} from "./models/car";
 import { Game } from './settings';
+import { Direction } from "./types";
 
 /**
  * Imports meshes in a file and links them to a root `TransformNode`
@@ -46,6 +47,7 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
         if (!mesh.parent) {
             mesh.parent = root;
         }
+        //console.log(filename, mesh.name);
     });
     root.position = position;
 }
@@ -123,7 +125,7 @@ export function createRegButton3D(name: string, lb_text: string, panel: GUI.Stac
  * @param scene - the scene in which to create the mesh
  */
 export function createRoadMesh(road: Road, scene: Scene) {
-    const roadMaterial = new BABYLON.StandardMaterial('road', scene);
+    var roadMaterial = new BABYLON.StandardMaterial('road', scene);
     roadMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
     
     let count = 0;
@@ -164,4 +166,46 @@ export function createRoadMesh(road: Road, scene: Scene) {
         count++;
         directionIsRight = !directionIsRight;
     });
+}
+
+
+
+export function initTireTracks(scene : Scene) {
+    const initArray = [[new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)],[new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)],
+    [new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)],[new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)],
+    [new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)],[new Vector3(0, 0 ,0), new Vector3(0, 0 ,0)]];
+    let tireTrack = BABYLON.MeshBuilder.CreateRibbon("tireTrack", {pathArray: initArray, sideOrientation: BABYLON.Mesh.FRONTSIDE, updatable: true}, scene);
+    var tireMaterial = new BABYLON.StandardMaterial('tire', scene);
+    tireMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+    tireMaterial.emissiveColor = new BABYLON.Color3(1,1,1);
+    tireMaterial.alpha = 1.0;
+    tireMaterial.wireframe = true;
+    tireTrack.material = tireMaterial;
+
+    .forEach(mesh => {
+        console.log(mesh.name);
+    });
+
+    return tireTrack;
+}
+
+export function createTireTracks(prevPosition: Vector3, newPosition : Vector3, trackArray: Vector3[][], scene : Scene, globalTireTrack: BABYLON.Mesh) {
+
+    var path = [];
+    /*if(prevPosition.z == newPosition.z && prevPosition.x == newPosition.x) {
+        path.push(new Vector3(newPosition.x, newPosition.y, newPosition.z-3));
+        path.push(new Vector3(newPosition.x, newPosition.y, newPosition.z+3));
+    } else if (prevPosition.z == newPosition.z) {
+        
+    }*/
+
+    path.push(newPosition);
+    
+    trackArray.shift();
+    trackArray.push(path);
+
+    //console.log(trackArray);
+    globalTireTrack = BABYLON.MeshBuilder.CreateRibbon(null, {pathArray: trackArray, instance: globalTireTrack});
+    
+
 }
