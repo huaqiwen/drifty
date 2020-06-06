@@ -120,15 +120,17 @@ createScene().then((result) => {
         }
 
         // Update car position.
-        aventadorRoot.position.z += 1.5 * movement.forward;
-        aventadorRoot.position.x += 1.5 * movement.rightward;
-        aventadorRoot.position.y -= 1.5 * movement.downward;
+        const deltaMultiplier = engine.getDeltaTime() / 50 * 3;
+
+        aventadorRoot.position.z += 1.5 * movement.forward * deltaMultiplier;
+        aventadorRoot.position.x += 1.5 * movement.rightward * deltaMultiplier;
+        aventadorRoot.position.y -= 1.5 * movement.downward * deltaMultiplier;
         aventadorRoot.rotation = new Vector3(0, Math.PI / 2 + movement.rotationDelta, 0);
 
         // Accumulate distance traveled *if not fallen*
         if (movement.state != Direction.Fall) {
-            movement.forwardDist += 1.5 * movement.forward;
-            movement.rightDist += 1.5 * movement.rightward;
+            movement.forwardDist += 1.5 * movement.forward * deltaMultiplier;
+            movement.rightDist += 1.5 * movement.rightward * deltaMultiplier;
         }
 
         // Update distance label & fps label
