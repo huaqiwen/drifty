@@ -51,6 +51,13 @@ async function createScene () {
     roadMaterial.diffuseTexture = new BABYLON.Texture("./models3d/gtr/rough_asphalt2.jpg", scene);
     Builder.createRoadMesh(road, scene, roadMaterial);
 
+    // Create flags on the road.
+    // TODO: make this process happen in Builder.createRoadMesh.
+    Builder.createModelNode("", "./models3d/flag/", "flag.babylon", scene, "flag", Game.CAR_START_POS[0])
+        .then((root) => {
+        root.scaling = new Vector3(40, 35, 40);
+    });
+
     // Create cars.
     let importCarPromises = []
     for (let i = 0; i < inGameCars.length; i++) { importCarPromises.push(Builder.createCar(Game.CARS[inGameCars[i]], Game.CAR_START_POS[i], scene)); }
@@ -59,14 +66,13 @@ async function createScene () {
     // Create shadows for the cars.
     const shadowGenerator = new BABYLON.ShadowGenerator(1024, light);
     shadowGenerator.usePoissonSampling = true;
-    // TODO: make shaddow work on all `inGameCars` (without losing performance)
     inGameCars.forEach(carName => {
         shadowGenerator.getShadowMap().renderList.push(...scene.getNodeByName(carName).getChildMeshes(false));
     });
 
     // Create follow camera.
     Builder.createFollowCamera("followCam", scene, canvas, "aventador", new Vector3(500, 500, 0),
-        12, 7, 170, true, false);
+        12, 7, 170, true, true);
 
     // Create 3D GUI manager and action panel.
     const guiManager = new GUI.GUI3DManager(scene);

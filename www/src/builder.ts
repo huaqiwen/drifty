@@ -40,7 +40,8 @@ export function createSkybox(skyboxName: string, imgDir: string, size: number, s
  * @param rootName - a string that defines the name of the new TransformNode
  * @param position - a Vector3 that defines the initial position of the model
  */
-export async function createModelNode(meshNames: string, fileRootUrl: string, filename: string, scene: Scene, rootName: string, position: Vector3=Vector3.Zero()) {
+export async function createModelNode(meshNames: string, fileRootUrl: string, filename: string, scene: Scene, rootName: string, position: Vector3=Vector3.Zero())
+    : Promise<BABYLON.TransformNode> {
     const data = await BABYLON.SceneLoader.ImportMeshAsync(meshNames, fileRootUrl, filename, scene, (evt) => {
         // Update the progress bar and its label.
         let loadedPercent;
@@ -71,6 +72,10 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
         }
     });
     root.position = position;
+
+    return new Promise((resolve => {
+        resolve(root);
+    }));
 }
 
 
