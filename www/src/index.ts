@@ -53,7 +53,7 @@ async function createScene () {
 
     // Create flags on the road.
     // TODO: make this process happen in Builder.createRoadMesh.
-    Builder.createModelNode("", "./models3d/flag/", "flag.babylon", scene, "flag", Game.CAR_START_POS[0])
+    Builder.createModelNode("", "./models3d/flag/", "flag.babylon", scene, "flag", new Vector3(15, 0, 4.3))
         .then((root) => {
         root.scaling = new Vector3(40, 35, 40);
     });

@@ -9,7 +9,7 @@ import { Game } from './settings';
 
 
 /**
- * Creates a skybox for the input scene.
+ * Creates and returns a skybox for the input scene.
  *
  * @param skyboxName - a string that defines the name of the created skybox
  * @param imgDir - a string that defines the path of images of the skybox texture
@@ -27,11 +27,13 @@ export function createSkybox(skyboxName: string, imgDir: string, size: number, s
     skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
+
+    return skybox;
 }
 
 
 /**
- * Imports meshes in a file and links them to a root `TransformNode`.
+ * Imports meshes in a file and links them to a root `TransformNode` and returns it.
  *
  * @param meshNames - an array of mesh names, a single mesh name, or empty string for all meshes that filter what meshes are imported
  * @param fileRootUrl - a string that defines the root url for the scene and resources or the concatenation of rootURL and filename
@@ -73,29 +75,31 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
     });
     root.position = position;
 
-    return new Promise((resolve => {
-        resolve(root);
-    }));
+    return new Promise((resolve => resolve(root)));
 }
 
 
 /**
- * Create a car node based on given information.
+ * Creates and returns a car node based on given information.
  *
  * @param car - a Car object that defines the information of the to-be-imported car
  * @param position - a Vector3 that defines the starting position of the car
  * @param scene - scene that owns the car
  */
-export async function createCar(car: Car, position: Vector3, scene: Scene) {
-    await createModelNode("", car.fileRootUrl, car.filename, scene, car.name, position);
-    const carNode = scene.getNodeByName(car.name) as BABYLON.TransformNode;
+export async function createCar(car: Car, position: Vector3, scene: Scene) : Promise<BABYLON.TransformNode> {
+    let carNode: BABYLON.TransformNode;
+    await createModelNode("", car.fileRootUrl, car.filename, scene, car.name, position).then((root) => {
+        carNode = root;
+    });
     carNode.scaling = car.scaling;
     carNode.rotation = car.rotation;
+
+    return new Promise((resolve => resolve(carNode)));
 }
 
 
 /**
- * Creates a BABYLON FollowCamera that follows a given node or mesh.
+ * Creates and returns a BABYLON FollowCamera that follows a given node or mesh.
  *
  * @param camName - a string that defines the name of the created FollowCamera
  * @param scene - scene that owns the camera
@@ -123,11 +127,13 @@ export function createFollowCamera(camName: string, scene: Scene, canvas: HTMLCa
     if (attachCtrl) {
         camera.attachControl(canvas, true);
     }
+
+    return camera;
 }
 
 
 /**
- * Creates a 3D button with onPointerUpObservable event.
+ * Creates and returns a 3D button with onPointerUpObservable event.
  *
  * @param name - a string defines the name of the button
  * @param lbText - a string defines the text content of the button
@@ -157,6 +163,8 @@ export function createRegButton3D(name: string, lbText: string, panel: GUI.Stack
     txt.color = textColor;
     txt.fontSize = fontSize;
     button.content = txt;
+
+    return button;
 }
 
 
