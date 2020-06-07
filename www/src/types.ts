@@ -6,4 +6,5 @@ export const enum Direction {
     Forward,
     Right,
     Still,
+    Fall
 }

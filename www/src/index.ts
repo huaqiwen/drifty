@@ -8,7 +8,6 @@ import {Game} from "./settings";
 
 import {Road} from "./models/road";
 import {GameLoadingScreen} from "./models/GameLoadingSreen";
-import { bonesDeclaration } from "babylonjs/Shaders/ShadersInclude/bonesDeclaration";
 
 
 const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
@@ -55,6 +54,13 @@ async function createScene () {
     roadMaterial.diffuseTexture = new BABYLON.Texture("./models3d/gtr/rough_asphalt2.jpg", scene);
     Builder.createRoadMesh(road, scene, roadMaterial);
 
+    // Create flags on the road.
+    // TODO: make this process happen in Builder.createRoadMesh.
+    Builder.createModelNode("", "./models3d/flag/", "flag.babylon", scene, "flag", new Vector3(15, 0, 4.3))
+        .then((root) => {
+        root.scaling = new Vector3(40, 35, 40);
+    });
+
     // Create cars.
     let importCarPromises = []
     for (let i = 0; i < inGameCars.length; i++) { importCarPromises.push(Builder.createCar(Game.CARS[inGameCars[i]], Game.CAR_START_POS[i], scene)); }
@@ -63,14 +69,13 @@ async function createScene () {
     // Create shadows for the cars.
     const shadowGenerator = new BABYLON.ShadowGenerator(1024, light);
     shadowGenerator.usePoissonSampling = true;
-    // TODO: make shaddow work on all `inGameCars` (without losing performance)
     inGameCars.forEach(carName => {
         shadowGenerator.getShadowMap().renderList.push(...scene.getNodeByName(carName).getChildMeshes(false));
     });
 
     // Create follow camera.
     Builder.createFollowCamera("followCam", scene, canvas, "aventador", new Vector3(500, 500, 0),
-        12, 7, 170, true, false);
+        12, 7, 170, true, true);
 
     // Create 3D GUI manager and action panel.
     const guiManager = new GUI.GUI3DManager(scene);
@@ -91,7 +96,7 @@ async function createScene () {
     Builder.createRegButton3D("startButton", "Start!", panel, setupGame);
     window.addEventListener('keydown', keydown);
     window.addEventListener('keyup', keyup);
-    
+
     // Initialize tire tracks.
     tireTrack = Builder.initTireTracks(scene);
 
@@ -125,20 +130,22 @@ createScene().then((result) => {
                 await Promise.all([endGame("Game Over!"), fall()]);
             }
         }
-        
+
         // Update tire tracks
         Builder.updateTireTracks(trackArray, scene, tireTrack);
 
         // Update car position.
-        aventadorRoot.position.z += 1.5 * movement.forward;
-        aventadorRoot.position.x += 1.5 * movement.rightward;
-        aventadorRoot.position.y -= 1.5 * movement.downward;
+        const deltaMultiplier = engine.getDeltaTime() / 50 * 3;
+
+        aventadorRoot.position.z += 1.5 * movement.forward * deltaMultiplier;
+        aventadorRoot.position.x += 1.5 * movement.rightward * deltaMultiplier;
+        aventadorRoot.position.y -= 1.5 * movement.downward * deltaMultiplier;
         aventadorRoot.rotation = new Vector3(0, Math.PI / 2 + movement.rotationDelta, 0);
 
         // Accumulate distance traveled *if not fallen*
         if (movement.state != Direction.Fall) {
-            movement.forwardDist += 1.5 * movement.forward;
-            movement.rightDist += 1.5 * movement.rightward;
+            movement.forwardDist += 1.5 * movement.forward * deltaMultiplier;
+            movement.rightDist += 1.5 * movement.rightward * deltaMultiplier;
         }
 
         // Update distance label & fps label
@@ -147,7 +154,7 @@ createScene().then((result) => {
 
         // Update light position.
         light.position = aventadorRoot.position.add(new BABYLON.Vector3(20, 20, 20));
-        
+
         scene.render();
     });
 });
