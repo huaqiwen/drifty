@@ -54,13 +54,6 @@ async function createScene () {
     roadMaterial.diffuseTexture = new BABYLON.Texture("./models3d/gtr/rough_asphalt2.jpg", scene);
     Builder.createRoadMesh(road, scene, roadMaterial);
 
-    // Create flags on the road.
-    // TODO: make this process happen in Builder.createRoadMesh.
-    Builder.createModelNode("", "./models3d/flag/", "flag.babylon", scene, "flag", new Vector3(15, 0, 4.3))
-        .then((root) => {
-        root.scaling = new Vector3(40, 35, 40);
-    });
-
     // Create cars.
     let importCarPromises = []
     for (let i = 0; i < inGameCars.length; i++) { importCarPromises.push(Builder.createCar(Game.CARS[inGameCars[i]], Game.CAR_START_POS[i], scene)); }
