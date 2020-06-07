@@ -27,6 +27,9 @@ let movement = {
     state: Direction.Still
 }
 
+var tireTrack;
+var trackArray = Array(40).fill(Array(2).fill(Vector3.Zero));
+
 async function createScene () {
     let inGameCars = ["aventador"];
 
@@ -94,6 +97,9 @@ async function createScene () {
     window.addEventListener('keydown', keydown);
     window.addEventListener('keyup', keyup);
 
+    // Initialize tire tracks.
+    tireTrack = Builder.initTireTracks(scene);
+
     // Hide loading screen.
     engine.hideLoadingUI();
 
@@ -124,6 +130,9 @@ createScene().then((result) => {
                 await Promise.all([endGame("Game Over!"), fall()]);
             }
         }
+
+        // Update tire tracks
+        Builder.updateTireTracks(trackArray, scene, tireTrack);
 
         // Update car position.
         const deltaMultiplier = engine.getDeltaTime() / 50 * 3;

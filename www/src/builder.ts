@@ -240,3 +240,61 @@ export function createRoadMesh(road: Road, scene: Scene, roadMaterial: BABYLON.S
         directionIsRight = !directionIsRight;
     });
 }
+
+
+/**
+ * Initialize settings to create a tire track mesh, and returns that mesh.
+ * 
+ * @param scene - the scene in which to create the mesh
+ */
+export function initTireTracks(scene : Scene) {
+    var initArray = Game.INIT_TRACK_ARRAY;
+    const tireTrackUVs = Game.TIRETRACK_UVS;
+    
+    // create a bounding box for tire tracks, attach it to parent node
+    var box = BABYLON.MeshBuilder.CreateBox("BoundBox",{width: 2, depth: 3, height: 1 }, scene);
+    box.visibility = 0;
+    box.parent = scene.getNodeByName("aventador");
+    box.position.y = 0.65;
+    
+    // initialize the tire tracks
+    let tireTrack = BABYLON.MeshBuilder.CreateRibbon("tireTrack", {pathArray: initArray, sideOrientation: BABYLON.Mesh.FRONTSIDE, uvs: tireTrackUVs, updatable: true}, scene);
+    var tireMaterial = new BABYLON.StandardMaterial('tire', scene);
+    var tex= new BABYLON.Texture("https://raw.githubusercontent.com/RaggarDK/Baby/baby/dat2.png", this.scene);
+
+    // initialize the material
+    tireMaterial.diffuseTexture = tex;
+    tireMaterial.diffuseTexture.hasAlpha = true;
+    tireMaterial.alpha = 0.6;
+    tireMaterial.backFaceCulling = false;
+    tireMaterial.opacityTexture = tex;
+    //tireMaterial.wireframe = true;
+    tireTrack.material = tireMaterial;
+
+
+    return tireTrack;
+}
+
+/**
+ * Updates the tire track mesh with new positions of bounding box.
+ * 
+ * @param trackArray - array of positions of the tire track mesh
+ * @param scene - the scene in which to create the mesh
+ * @param globalTireTrack - the tire track mesh that is being updated
+ */
+export function updateTireTracks(trackArray: Vector3[][], scene : Scene, globalTireTrack: BABYLON.Mesh) {
+    var path = [];
+
+    var arr = scene.getMeshByName("BoundBox").getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    var vertex1 = BABYLON.Vector3.FromArray(arr, 3*7);
+    var vertex2 = BABYLON.Vector3.FromArray(arr, 0);
+    var pos1 = BABYLON.Vector3.TransformCoordinates(vertex1, scene.getMeshByName("BoundBox").getWorldMatrix());
+    var pos2 = BABYLON.Vector3.TransformCoordinates(vertex2, scene.getMeshByName("BoundBox").getWorldMatrix());
+
+    path.push(pos1, pos2);
+
+    trackArray.shift();
+    trackArray.push(path);
+
+    globalTireTrack = BABYLON.MeshBuilder.CreateRibbon(null, {pathArray: trackArray, instance: globalTireTrack});
+}
