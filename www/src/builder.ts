@@ -2,7 +2,6 @@ import * as BABYLON from "babylonjs";
 import * as GUI from "babylonjs-gui";
 import { Scene, Vector3 } from "babylonjs";
 
-
 import { Road } from './models/road';
 import { Car} from "./models/car";
 import { Game } from './settings';
@@ -90,9 +89,9 @@ export async function createCar(car: Car, position: Vector3, scene: Scene) : Pro
     let carNode: BABYLON.TransformNode;
     await createModelNode("", car.fileRootUrl, car.filename, scene, car.name, position).then((root) => {
         carNode = root;
+        carNode.scaling = car.scaling;
+        carNode.rotation = car.rotation;
     });
-    carNode.scaling = car.scaling;
-    carNode.rotation = car.rotation;
 
     return new Promise((resolve => resolve(carNode)));
 }
@@ -257,19 +256,19 @@ export function createRoadMesh(road: Road, scene: Scene, roadMaterial: BABYLON.S
  * @param scene - the scene in which to create the mesh
  */
 export function initTireTracks(scene : Scene) {
-    var initArray = Game.INIT_TRACK_ARRAY;
+    const initArray = Game.INIT_TRACK_ARRAY;
     const tireTrackUVs = Game.TIRETRACK_UVS;
     
     // create a bounding box for tire tracks, attach it to parent node
-    var box = BABYLON.MeshBuilder.CreateBox("BoundBox",{width: 2, depth: 3, height: 1 }, scene);
+    const box = BABYLON.MeshBuilder.CreateBox("BoundBox",{width: 2, depth: 3, height: 1 }, scene);
     box.visibility = 0;
     box.parent = scene.getNodeByName("aventador");
     box.position.y = 0.65;
     
     // initialize the tire tracks
     let tireTrack = BABYLON.MeshBuilder.CreateRibbon("tireTrack", {pathArray: initArray, sideOrientation: BABYLON.Mesh.FRONTSIDE, uvs: tireTrackUVs, updatable: true}, scene);
-    var tireMaterial = new BABYLON.StandardMaterial('tire', scene);
-    var tex= new BABYLON.Texture("https://raw.githubusercontent.com/RaggarDK/Baby/baby/dat2.png", this.scene);
+    const tireMaterial = new BABYLON.StandardMaterial('tire', scene);
+    const tex= new BABYLON.Texture("https://raw.githubusercontent.com/RaggarDK/Baby/baby/dat2.png", this.scene);
 
     // initialize the material
     tireMaterial.diffuseTexture = tex;
@@ -280,9 +279,9 @@ export function initTireTracks(scene : Scene) {
     //tireMaterial.wireframe = true;
     tireTrack.material = tireMaterial;
 
-
     return tireTrack;
 }
+
 
 /**
  * Updates the tire track mesh with new positions of bounding box.
@@ -292,18 +291,18 @@ export function initTireTracks(scene : Scene) {
  * @param globalTireTrack - the tire track mesh that is being updated
  */
 export function updateTireTracks(trackArray: Vector3[][], scene : Scene, globalTireTrack: BABYLON.Mesh) {
-    var path = [];
+    let path = [];
 
-    var arr = scene.getMeshByName("BoundBox").getVerticesData(BABYLON.VertexBuffer.PositionKind);
-    var vertex1 = BABYLON.Vector3.FromArray(arr, 3*7);
-    var vertex2 = BABYLON.Vector3.FromArray(arr, 0);
-    var pos1 = BABYLON.Vector3.TransformCoordinates(vertex1, scene.getMeshByName("BoundBox").getWorldMatrix());
-    var pos2 = BABYLON.Vector3.TransformCoordinates(vertex2, scene.getMeshByName("BoundBox").getWorldMatrix());
+    const arr = scene.getMeshByName("BoundBox").getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    const vertex1 = BABYLON.Vector3.FromArray(arr, 3*7);
+    const vertex2 = BABYLON.Vector3.FromArray(arr, 0);
+    const pos1 = BABYLON.Vector3.TransformCoordinates(vertex1, scene.getMeshByName("BoundBox").getWorldMatrix());
+    const pos2 = BABYLON.Vector3.TransformCoordinates(vertex2, scene.getMeshByName("BoundBox").getWorldMatrix());
 
     path.push(pos1, pos2);
 
     trackArray.shift();
     trackArray.push(path);
 
-    globalTireTrack = BABYLON.MeshBuilder.CreateRibbon(null, {pathArray: trackArray, instance: globalTireTrack});
+    BABYLON.MeshBuilder.CreateRibbon(null, {pathArray: trackArray, instance: globalTireTrack});
 }
