@@ -42,17 +42,32 @@ export namespace Game {
      * defines the width and thickness of the game road
      */
     export const ROAD_CONFIG = {
-        length: 50,
+        length: 20,
         width: 30,
         thickness: 1,
     }
 
     /**
-     * defines the position and margin of the buttons panel
+     * defines the config and position of the signal lights panel
      */
-    export const PANEL_CONFIG = {
-        position: new BABYLON.Vector3(CAR_START_POS[0].x, 4, 5),
-        margin: 0.03,
+    export const SIGNAL_PANEL_CONFIG = {
+        position: new BABYLON.Vector3(15, 4, 5),
+        config: {
+            width: 4,
+            height: 1,
+            depth: 0.3
+        },
+        lightsConfig: (i) => {
+            return {
+                position: new Vector3(15 - (i - 1) * 1.3, 4, 5 - 0.15 - 0.05),
+                config: {
+                    diameterTop: 0.7,
+                    diameterBottom: 0.7,
+                    height: 0.1,
+                    tessellation: 60
+                }
+            }
+        }
     }
 
     /**
