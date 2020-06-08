@@ -41,7 +41,7 @@ async function createScene () {
     const scene = new Scene(engine);
 
     // Create skybox.
-    Builder.createSkybox("skyBox", "./textures/skybox/skybox", 1000, scene);
+    Builder.createSkybox("skyBox", "./textures/skybox/skybox", Game.ROAD_CONFIG.length * Game.ROAD_CONFIG.width + 500, scene);
 
     // Create light.
     light = new BABYLON.DirectionalLight("dir01", new BABYLON.Vector3(-2, -3, 0), scene);
@@ -49,7 +49,7 @@ async function createScene () {
     light.intensity = 1.4;
 
     // Create road and its material.
-    road = new Road(50, length => length / 20);
+    road = new Road(Game.ROAD_CONFIG.length, length => length / 20);
     const roadMaterial = new BABYLON.StandardMaterial("roadMaterial", scene);
     roadMaterial.diffuseTexture = new BABYLON.Texture("./models3d/gtr/rough_asphalt2.jpg", scene);
     Builder.createRoadMesh(road, scene, roadMaterial);
