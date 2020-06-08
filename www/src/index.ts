@@ -141,6 +141,9 @@ createScene().then((result) => {
         // If crossed finish line, decelerate.
         if (movement.state != Direction.Decel && road.isCarFinished(movement.forwardDist, movement.rightDist)) {
             movement.state = Direction.Decel;
+            // Zoom in camera.
+            const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
+            cam.radius = 20; cam.heightOffset = 10; cam.rotationOffset = 140;
             await decel();
             alert("You Win!!!"); location.reload();
         }
