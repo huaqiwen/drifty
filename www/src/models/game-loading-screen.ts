@@ -16,7 +16,6 @@ export class GameLoadingScreen implements ILoadingScreen {
     }
 
     public hideLoadingUI() {
-        console.log("Scene is loaded.")
         loadingScreenDiv.style.display = "none";
     }
 

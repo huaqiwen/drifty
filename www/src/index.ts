@@ -4,10 +4,9 @@ import * as GUI from "babylonjs-gui";
 
 import * as Builder from "./builder";
 import {Direction} from "./types";
-import {Game} from "./settings";
+import {Game, Colors} from "./settings";
 
 import {Road} from "./models/road";
-import {SignalLight} from "./models/signal-light";
 import {GameLoadingScreen} from "./models/game-loading-screen";
 
 
@@ -71,25 +70,8 @@ async function createScene () {
     Builder.createFollowCamera("followCam", scene, canvas, "aventador", new Vector3(500, 500, 0),
         12, 7, 170, true, true);
 
-    // Create 3D GUI manager and action panel.
-    // const guiManager = new GUI.GUI3DManager(scene);
-    // panel = new GUI.StackPanel3D(false);
-    // guiManager.addControl(panel);
-    // panel.margin = Game.PANEL_CONFIG.margin;
-    // panel.position = Game.PANEL_CONFIG.position;
-
-    // Create signal lights.
-    const signalLight = new SignalLight();
-    const sigLightsPanel = BABYLON.MeshBuilder.CreateBox("sigLightsPanel", Game.SIGNAL_PANEL_CONFIG.config, scene);
-    sigLightsPanel.position = Game.SIGNAL_PANEL_CONFIG.position;
-    const sigMaterial = new BABYLON.StandardMaterial("sigPanelMaterial", scene);
-    sigMaterial.emissiveColor = BABYLON.Color3.Red();
-    [0, 1, 2].forEach((i) => {
-        const sig = BABYLON.MeshBuilder.CreateCylinder("light1" + i.toString(), Game.SIGNAL_PANEL_CONFIG.lightsConfig(i).config, scene);
-        sig.position = Game.SIGNAL_PANEL_CONFIG.lightsConfig(i).position;
-        sig.rotation = new Vector3(Math.PI / 2, 0, 0);
-        sig.material = sigMaterial;
-    })
+    // Create signal panel and lights.
+    Builder.createSignalPanel("sigPanel", scene);
 
     // Create 2D GUI.
     const guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("gui2d", true);
@@ -98,11 +80,6 @@ async function createScene () {
     distLabel.paddingTop = 5; distLabel.paddingLeft = 10;
     fpsLabel.paddingTop = 5; fpsLabel.paddingRight = 10;
     guiTexture.addControl(distLabel); guiTexture.addControl(fpsLabel);
-
-    // Create buttons and event listeners.
-    // Builder.createRegButton3D("startButton", "Start!", panel, setupGame);
-    window.addEventListener('keydown', keydown);
-    window.addEventListener('keyup', keyup);
 
     // Initialize tire tracks.
     tireTrack = Builder.initTireTracks(scene);
@@ -118,15 +95,15 @@ let light;
 let road: Road;
 
 // GUI elements.
-// let panel: GUI.StackPanel3D;
 let distLabel: GUI.TextBlock;
 let fpsLabel: GUI.TextBlock;
 
 createScene().then((result) => {
     scene = result;
-    console.log(road.segments)
 
     engine.runRenderLoop(async function () {
+        // Start game if it has not been started.
+        if (!isGameStarted) await setupGame();
         const aventadorRoot = scene.getNodeByName("aventador");
 
         if (movement.state != Direction.Fall && !road.contains(aventadorRoot.position, Game.ROAD_CONFIG.width)) {
@@ -179,20 +156,32 @@ createScene().then((result) => {
 /**
  * Game start setup.
  */
-function setupGame() {
+async function setupGame() {
     isGameStarted = true;
 
-    // panel.removeControl(panel.children[0]);
+    await sleep(2000);
+
+    // Signal lights turn red (1 sec interval).
+    for (let i=2; i >= 0; i--) {
+        const sigLightMaterial = scene.getMaterialByName("sigLightMaterial" + i.toString());
+        sigLightMaterial.emissiveColor = Colors.RED;
+        await sleep(1000);
+    }
+
+    // Signal lights turn green.
+    for (let i=0; i < 3; i++) {
+        const sigLightMaterial = scene.getMaterialByName("sigLightMaterial" + i.toString());
+        sigLightMaterial.emissiveColor = Colors.GREEN;
+    }
+
+    // Change camera angle.
     const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
     cam.radius = 50; cam.heightOffset = 20; cam.rotationOffset = 180;
 
-    // For mobile devices.
-    window.addEventListener("touchstart", turnForward);
-    window.addEventListener("touchend", turnRight);
-
+    addCtrls();
     movement.state = Direction.Forward;
-    // noinspection JSIgnoredPromiseFromCall
-    accel();
+
+    await accel();
 }
 
 /**
@@ -220,12 +209,6 @@ async function keydown(e) {
 async function turnForward() {
     if (isSpaceKeyDown) return;
     isSpaceKeyDown = true;
-
-    // Game not started
-    if (!isGameStarted) {
-        setupGame();
-        return;
-    }
 
     for (let i=movement.turningTicks; i < 60; i++) {
         // Space key released, quit turning action.
@@ -307,6 +290,16 @@ async function decel() {
 }
 
 /**
+ * Add event listeners to the game.
+ */
+function addCtrls() {
+    window.addEventListener('keydown', keydown);
+    window.addEventListener('keyup', keyup);
+    window.addEventListener("touchstart", turnForward);
+    window.addEventListener("touchend", turnRight);
+}
+
+/**
  * Remove all event listeners from the game.
  */
 function removeCtrls() {
@@ -323,17 +316,6 @@ function removeCtrls() {
  */
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Returns true if v1 is approximately equal to v2.
- *
- * @param v1 - the first compared value
- * @param v2 - the second compared value
- * @param epsilon - episilon
- */
-function approxeq(v1: number, v2: number, epsilon: number = 0.001): boolean {
-    return Math.abs(v1 - v2) < epsilon;
 }
 
 //--- resize canvas on window resize
