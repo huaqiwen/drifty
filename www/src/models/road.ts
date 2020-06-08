@@ -8,12 +8,16 @@ export class Road {
     private readonly isRoadEndForward: boolean;
     private readonly goalDistance: number;
 
+    readonly leftEndFlagPos: Vector3;
+    readonly rightEndFlagPos: Vector3;
+
     constructor(
         public length: number,
         public roadCurveProbability: (straightLength: number) => number,
     ) {
         this.segments = this.generateSegments();
         this.isRoadEndForward = this.segments.length % 2 == 1;
+
         // Calculate goal distance
         this.goalDistance = 0;
         if (this.isRoadEndForward) {
@@ -25,6 +29,19 @@ export class Road {
             this.goalDistance -= Game.CAR_START_POS[0].x;
             for (let i=1; i < this.segments.length; i += 2) {
                 this.goalDistance += this.segments[i] * Game.ROAD_CONFIG.width;
+            }
+        }
+
+        // Calculate the flags position (end of the road)
+        this.leftEndFlagPos = new Vector3(0, 0, this.segments[0] * Game.ROAD_CONFIG.width);
+        this.rightEndFlagPos = new Vector3(Game.ROAD_CONFIG.width, 0, this.segments[0] * Game.ROAD_CONFIG.width);
+        for (let i=1; i < this.segments.length; i++) {
+            if (i % 2 == 0) {
+                this.leftEndFlagPos = this.leftEndFlagPos.add(new Vector3(0, 0, (this.segments[i] - 1) * Game.ROAD_CONFIG.width));
+                this.rightEndFlagPos = this.rightEndFlagPos.add(new Vector3(Game.ROAD_CONFIG.width, 0, this.segments[i] * Game.ROAD_CONFIG.width));
+            } else {
+                this.leftEndFlagPos = this.leftEndFlagPos.add(new Vector3(this.segments[i] * Game.ROAD_CONFIG.width, 0, Game.ROAD_CONFIG.width));
+                this.rightEndFlagPos = this.rightEndFlagPos.add(new Vector3((this.segments[i] - 1) * Game.ROAD_CONFIG.width, 0, 0));
             }
         }
     }

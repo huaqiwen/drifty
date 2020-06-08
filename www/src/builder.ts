@@ -205,6 +205,7 @@ export function createRoadMesh(road: Road, scene: Scene, roadMaterial: BABYLON.S
     let currentZ = 0;
     let directionIsRight = false;
 
+    // Create road.
     road.segments.forEach(segment => {
         // Create planes for a segment of the road
         const roadName = 'roadSegment' + count;
@@ -239,6 +240,14 @@ export function createRoadMesh(road: Road, scene: Scene, roadMaterial: BABYLON.S
         count++;
         directionIsRight = !directionIsRight;
     });
+
+    // Create end flags.
+    [road.leftEndFlagPos, road.rightEndFlagPos].forEach(pos => {
+        createModelNode("", "./models3d/flag/", "flag.babylon", scene, "flag", pos)
+            .then((root) => {
+                root.scaling = new Vector3(40, 35, 40);
+            });
+    })
 }
 
 

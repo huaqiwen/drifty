@@ -4,11 +4,12 @@
   "description": "a drifty game that consumes rust-wasm packages",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "start": "webpack-dev-server",
     "wasm-build": "cd .. && wasm-pack build && cd -",
     "wasm-build-start": "npm run wasm-build && npm start",
-    "deploy": "gh-pages -d dist"
+    "build": "webpack --config webpack.config.js",
+    "start": "webpack-dev-server",
+    "deploy": "gh-pages -d dist",
+    "bd": "npm run build && npm run deploy"
   },
   "repository": {
     "type": "git",
