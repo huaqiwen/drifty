@@ -31,15 +31,32 @@ export class Road {
                 this.goalDistance += this.segments[i] * Game.ROAD_CONFIG.width;
             }
         }
+        // Subtract the length of the last block.
+        this.goalDistance -= Game.ROAD_CONFIG.width;
 
         // Calculate the flags position (end of the road)
         this.leftEndFlagPos = new Vector3(0, 0, this.segments[0] * Game.ROAD_CONFIG.width);
         this.rightEndFlagPos = new Vector3(Game.ROAD_CONFIG.width, 0, this.segments[0] * Game.ROAD_CONFIG.width);
         for (let i=1; i < this.segments.length; i++) {
+            // Forward segment.
             if (i % 2 == 0) {
+                // Last segment, leave the last block for deceleration.
+                if (i == this.segments.length - 1) {
+                    this.leftEndFlagPos = this.leftEndFlagPos.add(new Vector3(0, 0, (this.segments[i] - 2) * Game.ROAD_CONFIG.width));
+                    this.rightEndFlagPos = this.rightEndFlagPos.add(new Vector3(Game.ROAD_CONFIG.width, 0, (this.segments[i] - 1) * Game.ROAD_CONFIG.width));
+                    break;
+                }
                 this.leftEndFlagPos = this.leftEndFlagPos.add(new Vector3(0, 0, (this.segments[i] - 1) * Game.ROAD_CONFIG.width));
                 this.rightEndFlagPos = this.rightEndFlagPos.add(new Vector3(Game.ROAD_CONFIG.width, 0, this.segments[i] * Game.ROAD_CONFIG.width));
-            } else {
+            }
+            // Rightward segment.
+            else {
+                // Last segment, leave the last block for deceleration.
+                if (i == this.segments.length - 1) {
+                    this.leftEndFlagPos = this.leftEndFlagPos.add(new Vector3((this.segments[i] - 1) * Game.ROAD_CONFIG.width, 0, Game.ROAD_CONFIG.width));
+                    this.rightEndFlagPos = this.rightEndFlagPos.add(new Vector3((this.segments[i] - 2) * Game.ROAD_CONFIG.width, 0, 0));
+                    break;
+                }
                 this.leftEndFlagPos = this.leftEndFlagPos.add(new Vector3(this.segments[i] * Game.ROAD_CONFIG.width, 0, Game.ROAD_CONFIG.width));
                 this.rightEndFlagPos = this.rightEndFlagPos.add(new Vector3((this.segments[i] - 1) * Game.ROAD_CONFIG.width, 0, 0));
             }
@@ -55,7 +72,7 @@ export class Road {
         let currentLength = 1;
         let currentSegmentLength = 1;
 
-        while (currentLength < this.length - 1) {
+        while (currentLength < this.length - 2) {
             const prob = this.roadCurveProbability(currentSegmentLength);
 
             if (Math.random() < prob) {
@@ -69,7 +86,7 @@ export class Road {
             currentLength++;
         }
 
-        segments.push(currentSegmentLength + 1)
+        segments.push(currentSegmentLength + 2)
 
         return segments;
     }

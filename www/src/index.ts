@@ -7,7 +7,8 @@ import {Direction} from "./types";
 import {Game} from "./settings";
 
 import {Road} from "./models/road";
-import {GameLoadingScreen} from "./models/GameLoadingSreen";
+import {SignalLight} from "./models/signal-light";
+import {GameLoadingScreen} from "./models/game-loading-screen";
 
 
 const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
@@ -27,8 +28,8 @@ let movement = {
     state: Direction.Still
 }
 
-var tireTrack;
-var trackArray = Array(40).fill(Array(2).fill(Vector3.Zero));
+let tireTrack;
+const trackArray = Array(40).fill(Array(2).fill(Vector3.Zero));
 
 async function createScene () {
     let inGameCars = ["aventador"];
@@ -71,11 +72,24 @@ async function createScene () {
         12, 7, 170, true, true);
 
     // Create 3D GUI manager and action panel.
-    const guiManager = new GUI.GUI3DManager(scene);
-    panel = new GUI.StackPanel3D(false);
-    guiManager.addControl(panel);
-    panel.margin = Game.PANEL_CONFIG.margin;
-    panel.position = Game.PANEL_CONFIG.position;
+    // const guiManager = new GUI.GUI3DManager(scene);
+    // panel = new GUI.StackPanel3D(false);
+    // guiManager.addControl(panel);
+    // panel.margin = Game.PANEL_CONFIG.margin;
+    // panel.position = Game.PANEL_CONFIG.position;
+
+    // Create signal lights.
+    const signalLight = new SignalLight();
+    const sigLightsPanel = BABYLON.MeshBuilder.CreateBox("sigLightsPanel", Game.SIGNAL_PANEL_CONFIG.config, scene);
+    sigLightsPanel.position = Game.SIGNAL_PANEL_CONFIG.position;
+    const sigMaterial = new BABYLON.StandardMaterial("sigPanelMaterial", scene);
+    sigMaterial.emissiveColor = BABYLON.Color3.Red();
+    [0, 1, 2].forEach((i) => {
+        const sig = BABYLON.MeshBuilder.CreateCylinder("light1" + i.toString(), Game.SIGNAL_PANEL_CONFIG.lightsConfig(i).config, scene);
+        sig.position = Game.SIGNAL_PANEL_CONFIG.lightsConfig(i).position;
+        sig.rotation = new Vector3(Math.PI / 2, 0, 0);
+        sig.material = sigMaterial;
+    })
 
     // Create 2D GUI.
     const guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("gui2d", true);
@@ -86,7 +100,7 @@ async function createScene () {
     guiTexture.addControl(distLabel); guiTexture.addControl(fpsLabel);
 
     // Create buttons and event listeners.
-    Builder.createRegButton3D("startButton", "Start!", panel, setupGame);
+    // Builder.createRegButton3D("startButton", "Start!", panel, setupGame);
     window.addEventListener('keydown', keydown);
     window.addEventListener('keyup', keyup);
 
@@ -104,7 +118,7 @@ let light;
 let road: Road;
 
 // GUI elements.
-let panel: GUI.StackPanel3D;
+// let panel: GUI.StackPanel3D;
 let distLabel: GUI.TextBlock;
 let fpsLabel: GUI.TextBlock;
 
@@ -122,6 +136,13 @@ createScene().then((result) => {
             } else {
                 await Promise.all([endGame("Game Over!"), fall()]);
             }
+        }
+
+        // If crossed finish line, decelerate.
+        if (movement.state != Direction.Decel && road.isCarFinished(movement.forwardDist, movement.rightDist)) {
+            movement.state = Direction.Decel;
+            await decel();
+            alert("You Win!!!"); location.reload();
         }
 
         // Update tire tracks
@@ -158,7 +179,7 @@ createScene().then((result) => {
 function setupGame() {
     isGameStarted = true;
 
-    panel.removeControl(panel.children[0]);
+    // panel.removeControl(panel.children[0]);
     const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
     cam.radius = 50; cam.heightOffset = 20; cam.rotationOffset = 180;
 
@@ -175,10 +196,7 @@ function setupGame() {
  * End the game, remove event listeners.
  */
 async function endGame(message?: string) {
-    window.removeEventListener('keydown', keydown);
-    window.removeEventListener('keyup', keyup);
-    window.removeEventListener('touchstart', turnRight);
-    window.removeEventListener('touchend', turnForward);
+    removeCtrls();
 
     // If `message` is not null, alert it
     await sleep(600);
@@ -259,7 +277,7 @@ async function fall() {
 }
 
 /**
- * Start accelerating (movement.forward 0 -> 1).
+ * Accelerate (movement.forward 0 -> 1) in 1 second.
  */
 async function accel() {
     for (let i=0; i < 60; i++) {
@@ -269,12 +287,49 @@ async function accel() {
 }
 
 /**
+ * Decelerate and rotate in 0.4 seconds.
+ */
+async function decel() {
+    removeCtrls();
+
+    const fDiff = movement.forward;
+    const rDiff = movement.rightward;
+
+    for (let i=0; i < 60; i++) {
+        movement.forward -= fDiff / 60;
+        movement.rightward -= rDiff / 60;
+        await sleep(400/60)
+    }
+}
+
+/**
+ * Remove all event listeners from the game.
+ */
+function removeCtrls() {
+    window.removeEventListener('keydown', keydown);
+    window.removeEventListener('keyup', keyup);
+    window.removeEventListener('touchstart', turnRight);
+    window.removeEventListener('touchend', turnForward);
+}
+
+/**
  * Sleeps the current thread of the input time.
  *
  * @param ms - sleep time in milisecond
  */
-function sleep(ms) {
+function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Returns true if v1 is approximately equal to v2.
+ *
+ * @param v1 - the first compared value
+ * @param v2 - the second compared value
+ * @param epsilon - episilon
+ */
+function approxeq(v1: number, v2: number, epsilon: number = 0.001): boolean {
+    return Math.abs(v1 - v2) < epsilon;
 }
 
 //--- resize canvas on window resize
