@@ -1,5 +1,5 @@
 import * as BABYLON from "babylonjs";
-import {Engine, Scene, Vector3, CubeMapToSphericalPolynomialTools} from "babylonjs";
+import {Engine, Scene, Vector3} from "babylonjs";
 import * as GUI from "babylonjs-gui";
 
 import * as Builder from "./builder";
@@ -143,7 +143,6 @@ createScene().then((result) => {
         Builder.updateTireTracks(trackArray, scene, tireTrack);
 
         if (movement.state !== Direction.Still && movement.state !== Direction.Fall) {
-            // if (movement.turningProgress < 1) {
             // Update progress with time past
             const progress = Math.min(1, movement.turningProgress + engine.getDeltaTime() / carSetup.turningTime);
 
@@ -170,8 +169,6 @@ createScene().then((result) => {
                 movement.rightward = limit(movement.rightward + forwardChange);
                 movement.rotationDelta = Math.PI / 2 - rotation;
             }
-
-            console.log(movement.forward, movement.rightward);
 
             // Finished turning
             if (progress === 1) {
