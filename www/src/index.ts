@@ -186,7 +186,7 @@ createScene().then((result) => {
         aventadorRoot.position.y -= 1.5 * movement.downward * deltaMultiplier;
         aventadorRoot.rotation = new Vector3(0, Math.PI / 2 + movement.rotationDelta, 0);
 
-        // Accumulate distance traveled *if not fall en*
+        // Accumulate distance traveled *if not fallen*
         if (movement.state != Direction.Fall) {
             movement.forwardDist += 1.5 * movement.forward * deltaMultiplier;
             movement.rightDist += 1.5 * movement.rightward * deltaMultiplier;
