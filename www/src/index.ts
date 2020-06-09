@@ -144,41 +144,41 @@ createScene().then((result) => {
 
         if (movement.state !== Direction.Still && movement.state !== Direction.Fall) {
             // if (movement.turningProgress < 1) {
-                // Update progress with time past
-                const progress = Math.min(1, movement.turningProgress + engine.getDeltaTime() / carSetup.turningTime);
+            // Update progress with time past
+            const progress = Math.min(1, movement.turningProgress + engine.getDeltaTime() / carSetup.turningTime);
 
-                const rotation = progress * Math.PI / 2;
-                const forwardComp = Math.cos(rotation);
-                const sideComp = Math.sin(rotation);
+            const rotation = progress * Math.PI / 2;
+            const forwardComp = Math.cos(rotation);
+            const sideComp = Math.sin(rotation);
 
-                const portionOfSecond = engine.getDeltaTime() / 1000;
+            const portionOfSecond = engine.getDeltaTime() / 1000;
 
-                const forwardChange = portionOfSecond * (forwardComp * carSetup.acceleration - sideComp * carSetup.friction) / carSetup.mass;
-                const sideChange = portionOfSecond * (sideComp * carSetup.acceleration - forwardComp * carSetup.friction) / carSetup.mass;
+            const forwardChange = portionOfSecond * (forwardComp * carSetup.acceleration - sideComp * carSetup.friction) / carSetup.mass;
+            const sideChange = portionOfSecond * (sideComp * carSetup.acceleration - forwardComp * carSetup.friction) / carSetup.mass;
 
-                /// Limit a number between 0 and 1
-                const limit = (n: number) => Math.min(1, Math.max(0, n));
+            /// Limit a number between 0 and 1
+            const limit = (n: number) => Math.min(1, Math.max(0, n));
 
-                if (isSpaceKeyDown) {
-                    // Turning right
-                    movement.forward = limit(movement.forward + forwardChange);
-                    movement.rightward = limit(movement.rightward + sideChange);
-                    movement.rotationDelta = rotation;
-                } else {
-                    // Turning forward
-                    movement.forward = limit(movement.forward + sideChange);
-                    movement.rightward = limit(movement.rightward + forwardChange);
-                    movement.rotationDelta = Math.PI / 2 - rotation;
-                }
+            if (isSpaceKeyDown) {
+                // Turning right
+                movement.forward = limit(movement.forward + forwardChange);
+                movement.rightward = limit(movement.rightward + sideChange);
+                movement.rotationDelta = rotation;
+            } else {
+                // Turning forward
+                movement.forward = limit(movement.forward + sideChange);
+                movement.rightward = limit(movement.rightward + forwardChange);
+                movement.rotationDelta = Math.PI / 2 - rotation;
+            }
 
-                console.log(movement.forward, movement.rightward);
+            console.log(movement.forward, movement.rightward);
 
-                // Finished turning
-                if (progress === 1) {
-                    movement.state = isSpaceKeyDown ? Direction.Right : Direction.Forward;
-                }
+            // Finished turning
+            if (progress === 1) {
+                movement.state = isSpaceKeyDown ? Direction.Right : Direction.Forward;
+            }
 
-                movement.turningProgress = progress;
+            movement.turningProgress = progress;
         }
 
         // Update car position.
@@ -245,34 +245,9 @@ async function endGame(message?: string) {
  */
 async function keydown(e) {
     // Space key pressed.
-    if (e.code == 'Space' && !isSpaceKeyDown) {
-        handleTurnDirectionChange();
-        // await turnForward();
+    if (e.code == 'Space') {
+        turnForward();
     }
-}
-
-async function turnForward() {
-    if (isSpaceKeyDown) return;
-    isSpaceKeyDown = true;
-
-    // Game not started
-    if (!isGameStarted) {
-        setupGame();
-        return;
-    }
-
-    for (let i=movement.turningTicks; i < 60; i++) {
-        // Space key released, quit turning action.
-        if (!isSpaceKeyDown) return;
-
-        movement.turningTicks = i + 1;
-        movement.rightward += 1 / 60;
-        movement.forward -= 1 / 60;
-        movement.rotationDelta += (1 / 60) * Math.PI / 2;
-        await sleep(10);
-    }
-
-    movement.state = Direction.Right;
 }
 
 /**
@@ -280,9 +255,20 @@ async function turnForward() {
  */
 async function keyup(e) {
     // Space key released.
-    if (e.code == 'Space' && isSpaceKeyDown) {
+    if (e.code == 'Space') {
+        turnRight();
+    }
+}
+
+function turnRight() {
+    if (isSpaceKeyDown) {
         handleTurnDirectionChange();
-        // await turnRight();
+    }
+}
+
+function turnForward() {
+    if (!isSpaceKeyDown) {
+        handleTurnDirectionChange();
     }
 }
 
@@ -291,24 +277,6 @@ function handleTurnDirectionChange() {
         isSpaceKeyDown = !isSpaceKeyDown;
         movement.turningProgress = 1 - movement.turningProgress;
     }
-}
-
-async function turnRight() {
-    isSpaceKeyDown = false;
-
-    for (let i=movement.turningTicks; i > 0; i--) {
-        // Space key pressed, quit turning action.
-        if (isSpaceKeyDown) return;
-
-        movement.turningTicks = i - 1;
-        movement.rightward -= 1 / 60;
-        movement.forward += 1 / 60;
-        movement.rotationDelta -= (1 / 60) * Math.PI / 2;
-        await sleep(10);
-    }
-
-    movement.state = Direction.Forward;
-
 }
 
 /**
