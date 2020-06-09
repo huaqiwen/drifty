@@ -24,8 +24,9 @@ let movement = {
     rightDist: 0,
     rotationDelta: 0,
     turningTicks: 0,
-    state: Direction.Still
-}
+    turningProgress: 1,
+    state: Direction.Still,
+};
 
 var tireTrack;
 var trackArray = Array(40).fill(Array(2).fill(Vector3.Zero));
@@ -108,6 +109,20 @@ let panel: GUI.StackPanel3D;
 let distLabel: GUI.TextBlock;
 let fpsLabel: GUI.TextBlock;
 
+let carSetup = {
+    // The time (in ms) that the car needs to make a 90 degree turn
+    turningTime: 300,
+    // The mass of car in kg. Affects the overall responsiveness of the car when drifting.
+    mass: 2,
+    // The acceleration force of the car towards the direction that it is facing.
+    // When drifting, this affects how quickly the car will start to speed up after turning.
+    acceleration: 8,
+    // The friction force caused by the wheels when car is not facing the direction it is going.
+    // When drifting, this determines how quickly the car slows down in the main direction.
+    // Looks most natural when this is equal or less than accelerationForce.
+    friction: 6,
+};
+
 createScene().then((result) => {
     scene = result;
     console.log(road.segments)
@@ -126,6 +141,42 @@ createScene().then((result) => {
 
         // Update tire tracks
         Builder.updateTireTracks(trackArray, scene, tireTrack);
+
+        if (movement.state !== Direction.Still && movement.state !== Direction.Fall) {
+            // Update progress with time past
+            const progress = Math.min(1, movement.turningProgress + engine.getDeltaTime() / carSetup.turningTime);
+
+            const rotation = progress * Math.PI / 2;
+            const forwardComp = Math.cos(rotation);
+            const sideComp = Math.sin(rotation);
+
+            const portionOfSecond = engine.getDeltaTime() / 1000;
+
+            const forwardChange = portionOfSecond * (forwardComp * carSetup.acceleration - sideComp * carSetup.friction) / carSetup.mass;
+            const sideChange = portionOfSecond * (sideComp * carSetup.acceleration - forwardComp * carSetup.friction) / carSetup.mass;
+
+            /// Limit a number between 0 and 1
+            const limit = (n: number) => Math.min(1, Math.max(0, n));
+
+            if (isSpaceKeyDown) {
+                // Turning right
+                movement.forward = limit(movement.forward + forwardChange);
+                movement.rightward = limit(movement.rightward + sideChange);
+                movement.rotationDelta = rotation;
+            } else {
+                // Turning forward
+                movement.forward = limit(movement.forward + sideChange);
+                movement.rightward = limit(movement.rightward + forwardChange);
+                movement.rotationDelta = Math.PI / 2 - rotation;
+            }
+
+            // Finished turning
+            if (progress === 1) {
+                movement.state = isSpaceKeyDown ? Direction.Right : Direction.Forward;
+            }
+
+            movement.turningProgress = progress;
+        }
 
         // Update car position.
         const deltaMultiplier = engine.getDeltaTime() / 50 * 3;
@@ -192,32 +243,8 @@ async function endGame(message?: string) {
 async function keydown(e) {
     // Space key pressed.
     if (e.code == 'Space') {
-        await turnForward();
+        turnForward();
     }
-}
-
-async function turnForward() {
-    if (isSpaceKeyDown) return;
-    isSpaceKeyDown = true;
-
-    // Game not started
-    if (!isGameStarted) {
-        setupGame();
-        return;
-    }
-
-    for (let i=movement.turningTicks; i < 60; i++) {
-        // Space key released, quit turning action.
-        if (!isSpaceKeyDown) return;
-
-        movement.turningTicks = i + 1;
-        movement.rightward += 1 / 60;
-        movement.forward -= 1 / 60;
-        movement.rotationDelta += (1 / 60) * Math.PI / 2;
-        await sleep(10);
-    }
-
-    movement.state = Direction.Right;
 }
 
 /**
@@ -226,26 +253,27 @@ async function turnForward() {
 async function keyup(e) {
     // Space key released.
     if (e.code == 'Space') {
-        await turnRight();
+        turnRight();
     }
 }
 
-async function turnRight() {
-    isSpaceKeyDown = false;
-
-    for (let i=movement.turningTicks; i > 0; i--) {
-        // Space key pressed, quit turning action.
-        if (isSpaceKeyDown) return;
-
-        movement.turningTicks = i - 1;
-        movement.rightward -= 1 / 60;
-        movement.forward += 1 / 60;
-        movement.rotationDelta -= (1 / 60) * Math.PI / 2;
-        await sleep(10);
+function turnRight() {
+    if (isSpaceKeyDown) {
+        handleTurnDirectionChange();
     }
+}
 
-    movement.state = Direction.Forward;
+function turnForward() {
+    if (!isSpaceKeyDown) {
+        handleTurnDirectionChange();
+    }
+}
 
+function handleTurnDirectionChange() {
+    if (movement.state !== Direction.Still) {
+        isSpaceKeyDown = !isSpaceKeyDown;
+        movement.turningProgress = 1 - movement.turningProgress;
+    }
 }
 
 /**
@@ -256,6 +284,7 @@ async function fall() {
         movement.downward += 0.00981;
         await sleep(10);
     }
+    movement.state = Direction.Still;
 }
 
 /**
