@@ -4,7 +4,7 @@ import * as GUI from "babylonjs-gui";
 
 import * as Builder from "./builder";
 import {Direction} from "./types";
-import {Game, Colors} from "./settings";
+import {Colors, Game} from "./settings";
 
 import {Road} from "./models/road";
 import {GameLoadingScreen} from "./models/game-loading-screen";
@@ -143,7 +143,7 @@ createScene().then((result) => {
         // Update tire tracks
         Builder.updateTireTracks(trackArray, scene, tireTrack);
 
-        if (movement.state !== Direction.Still && movement.state !== Direction.Fall) {
+        if (movement.state !== Direction.Still && movement.state !== Direction.Fall && movement.state !== Direction.Decel) {
             // Update progress with time past
             const progress = Math.min(1, movement.turningProgress + engine.getDeltaTime() / carSetup.turningTime);
 
