@@ -4,7 +4,7 @@ import { Scene, Vector3 } from "babylonjs";
 
 import { Road } from './models/road';
 import { Car} from "./models/car";
-import { Game } from './settings';
+import {Colors, Game} from './settings';
 
 
 /**
@@ -305,4 +305,27 @@ export function updateTireTracks(trackArray: Vector3[][], scene : Scene, globalT
     trackArray.push(path);
 
     BABYLON.MeshBuilder.CreateRibbon(null, {pathArray: trackArray, instance: globalTireTrack});
+}
+
+
+/**
+ * Creates a signal light panel (config in `settings.ts`),
+ * and three signal lights named "sigLight0", "sigLight1", "sigLight2".
+ *
+ * @param name - name of the panel mesh
+ * @param scene - scene that owns the signal light panel and its lights
+ */
+export function createSignalPanel(name: string, scene: Scene) {
+    const sigLightsPanel = BABYLON.MeshBuilder.CreateBox(name, Game.SIGNAL_PANEL_CONFIG.config, scene);
+    sigLightsPanel.position = Game.SIGNAL_PANEL_CONFIG.position;
+    [0, 1, 2].forEach((i) => {
+        // Create different materials for different lights
+        const sigMaterial = new BABYLON.StandardMaterial("sigLightMaterial" + i.toString(), scene);
+        sigMaterial.emissiveColor = Colors.DARK_RED;
+
+        const sig = BABYLON.MeshBuilder.CreateCylinder("sigLight" + i.toString(), Game.SIGNAL_PANEL_CONFIG.lightsConfig(i).config, scene);
+        sig.position = Game.SIGNAL_PANEL_CONFIG.lightsConfig(i).position;
+        sig.rotation = new Vector3(Math.PI / 2, 0, 0);
+        sig.material = sigMaterial;
+    })
 }

@@ -4,10 +4,10 @@ import * as GUI from "babylonjs-gui";
 
 import * as Builder from "./builder";
 import {Direction} from "./types";
-import {Game} from "./settings";
+import {Game, Colors} from "./settings";
 
 import {Road} from "./models/road";
-import {GameLoadingScreen} from "./models/GameLoadingSreen";
+import {GameLoadingScreen} from "./models/game-loading-screen";
 
 
 const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
@@ -28,8 +28,8 @@ let movement = {
     state: Direction.Still,
 };
 
-var tireTrack;
-var trackArray = Array(40).fill(Array(2).fill(Vector3.Zero));
+let tireTrack;
+const trackArray = Array(40).fill(Array(2).fill(Vector3.Zero));
 
 async function createScene () {
     let inGameCars = ["aventador"];
@@ -71,12 +71,8 @@ async function createScene () {
     Builder.createFollowCamera("followCam", scene, canvas, "aventador", new Vector3(500, 500, 0),
         12, 7, 170, true, true);
 
-    // Create 3D GUI manager and action panel.
-    const guiManager = new GUI.GUI3DManager(scene);
-    panel = new GUI.StackPanel3D(false);
-    guiManager.addControl(panel);
-    panel.margin = Game.PANEL_CONFIG.margin;
-    panel.position = Game.PANEL_CONFIG.position;
+    // Create signal panel and lights.
+    Builder.createSignalPanel("sigPanel", scene);
 
     // Create 2D GUI.
     const guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("gui2d", true);
@@ -85,11 +81,6 @@ async function createScene () {
     distLabel.paddingTop = 5; distLabel.paddingLeft = 10;
     fpsLabel.paddingTop = 5; fpsLabel.paddingRight = 10;
     guiTexture.addControl(distLabel); guiTexture.addControl(fpsLabel);
-
-    // Create buttons and event listeners.
-    Builder.createRegButton3D("startButton", "Start!", panel, setupGame);
-    window.addEventListener('keydown', keydown);
-    window.addEventListener('keyup', keyup);
 
     // Initialize tire tracks.
     tireTrack = Builder.initTireTracks(scene);
@@ -105,7 +96,6 @@ let light;
 let road: Road;
 
 // GUI elements.
-let panel: GUI.StackPanel3D;
 let distLabel: GUI.TextBlock;
 let fpsLabel: GUI.TextBlock;
 
@@ -125,9 +115,10 @@ let carSetup = {
 
 createScene().then((result) => {
     scene = result;
-    console.log(road.segments)
 
     engine.runRenderLoop(async function () {
+        // Start game if it has not been started.
+        if (!isGameStarted) await setupGame();
         const aventadorRoot = scene.getNodeByName("aventador");
 
         if (movement.state != Direction.Fall && !road.contains(aventadorRoot.position, Game.ROAD_CONFIG.width)) {
@@ -137,6 +128,16 @@ createScene().then((result) => {
             } else {
                 await Promise.all([endGame("Game Over!"), fall()]);
             }
+        }
+
+        // If crossed finish line, decelerate.
+        if (movement.state != Direction.Decel && road.isCarFinished(movement.forwardDist, movement.rightDist)) {
+            movement.state = Direction.Decel;
+            // Zoom in camera.
+            const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
+            cam.radius = 20; cam.heightOffset = 10; cam.rotationOffset = 140;
+            await decel();
+            alert("You Win!!!"); location.reload();
         }
 
         // Update tire tracks
@@ -206,30 +207,39 @@ createScene().then((result) => {
 /**
  * Game start setup.
  */
-function setupGame() {
+async function setupGame() {
     isGameStarted = true;
 
-    panel.removeControl(panel.children[0]);
+    await sleep(2000);
+
+    // Signal lights turn red (1 sec interval).
+    for (let i=2; i >= 0; i--) {
+        const sigLightMaterial = scene.getMaterialByName("sigLightMaterial" + i.toString());
+        sigLightMaterial.emissiveColor = Colors.RED;
+        await sleep(1000);
+    }
+
+    // Signal lights turn green.
+    for (let i=0; i < 3; i++) {
+        const sigLightMaterial = scene.getMaterialByName("sigLightMaterial" + i.toString());
+        sigLightMaterial.emissiveColor = Colors.GREEN;
+    }
+
+    // Change camera angle.
     const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
     cam.radius = 50; cam.heightOffset = 20; cam.rotationOffset = 180;
 
-    // For mobile devices.
-    window.addEventListener("touchstart", turnForward);
-    window.addEventListener("touchend", turnRight);
-
+    addCtrls();
     movement.state = Direction.Forward;
-    // noinspection JSIgnoredPromiseFromCall
-    accel();
+
+    await accel();
 }
 
 /**
  * End the game, remove event listeners.
  */
 async function endGame(message?: string) {
-    window.removeEventListener('keydown', keydown);
-    window.removeEventListener('keyup', keyup);
-    window.removeEventListener('touchstart', turnRight);
-    window.removeEventListener('touchend', turnForward);
+    removeCtrls();
 
     // If `message` is not null, alert it
     await sleep(600);
@@ -298,11 +308,48 @@ async function accel() {
 }
 
 /**
+ * Decelerate and rotate in 0.4 seconds.
+ */
+async function decel() {
+    removeCtrls();
+
+    const fDiff = movement.forward;
+    const rDiff = movement.rightward;
+
+    for (let i=0; i < 60; i++) {
+        movement.forward -= fDiff / 60;
+        movement.rightward -= rDiff / 60;
+        movement.rotationDelta += Math.PI / 60;
+        await sleep(400/60)
+    }
+}
+
+/**
+ * Add event listeners to the game.
+ */
+function addCtrls() {
+    window.addEventListener('keydown', keydown);
+    window.addEventListener('keyup', keyup);
+    window.addEventListener("touchstart", turnForward);
+    window.addEventListener("touchend", turnRight);
+}
+
+/**
+ * Remove all event listeners from the game.
+ */
+function removeCtrls() {
+    window.removeEventListener('keydown', keydown);
+    window.removeEventListener('keyup', keyup);
+    window.removeEventListener('touchstart', turnRight);
+    window.removeEventListener('touchend', turnForward);
+}
+
+/**
  * Sleeps the current thread of the input time.
  *
  * @param ms - sleep time in milisecond
  */
-function sleep(ms) {
+function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
