@@ -7,7 +7,7 @@ import {Direction} from "./types";
 import {Colors, Game} from "./settings";
 
 import {Road} from "./models/road";
-import {GameLoadingScreen} from "./models/game-loading-screen";
+import {GameLoadingScreen, ScreenType} from "./models/game-loading-screen";
 
 
 const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
@@ -35,7 +35,7 @@ async function createScene () {
     let inGameCars = ["aventador"];
 
     // Create loading screen.
-    engine.loadingScreen = new GameLoadingScreen("Loading meshes to scene.");
+    engine.loadingScreen = new GameLoadingScreen("Loading meshes to scene.", ScreenType.Loading);
     engine.displayLoadingUI();
 
     // Create scene.
@@ -121,13 +121,10 @@ createScene().then((result) => {
         if (!isGameStarted) await setupGame();
         const aventadorRoot = scene.getNodeByName("aventador");
 
+        // Road does not contain the car, game over, user lose
         if (movement.state != Direction.Fall && !road.contains(aventadorRoot.position, Game.ROAD_CONFIG.width)) {
             movement.state = Direction.Fall;
-            if (road.isCarFinished(movement.forwardDist, movement.rightDist)) {
-                await Promise.all([endGame("You Win!"), fall()]);
-            } else {
-                await Promise.all([endGame("Game Over!"), fall()]);
-            }
+            await Promise.all([endGame(false), fall()]);
         }
 
         // If crossed finish line, decelerate.
@@ -137,7 +134,7 @@ createScene().then((result) => {
             const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
             cam.radius = 20; cam.heightOffset = 10; cam.rotationOffset = 140;
             await decel();
-            alert("You Win!!!"); location.reload();
+            await endGame(true);
         }
 
         // Update tire tracks
@@ -238,13 +235,17 @@ async function setupGame() {
 /**
  * End the game, remove event listeners.
  */
-async function endGame(message?: string) {
+async function endGame(didPlayerWin: boolean) {
     removeCtrls();
 
-    // If `message` is not null, alert it
-    await sleep(600);
-    if (typeof message !== "undefined") alert(message);
-    location.reload();
+    // If the player win, sleep for 1.8 secs (show the car stop),
+    // if the player lose, sleep for 0.7 secs (show the car fall).
+    await sleep(didPlayerWin ? 1800 : 700);
+
+    // Show game over screen, hide the canvas.
+    canvas.style.display = "none";
+    engine.loadingScreen = new GameLoadingScreen(didPlayerWin ? "You Win!" : "You Lose!", ScreenType.GameOver);
+    engine.displayLoadingUI();
 }
 
 /**
@@ -311,8 +312,6 @@ async function accel() {
  * Decelerate and rotate in 0.4 seconds.
  */
 async function decel() {
-    removeCtrls();
-
     const fDiff = movement.forward;
     const rDiff = movement.rightward;
 

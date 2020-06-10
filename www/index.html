@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <title>Drifty</title>
@@ -21,7 +21,11 @@
         display: block;
       }
 
-      #gameLoadingScreen {
+      h1 {
+        color: white;
+      }
+
+      #game-loading-screen {
         position: absolute;
         width: 100%;
         color: white;
@@ -44,10 +48,14 @@
   </head>
 
   <body>
-    <div id="gameLoadingScreen">
+    <div id="game-loading-screen">
       <label id="loading-progress-label" for="loading-progress">Loading...</label>
       <span></span>
       <progress id="loading-progress" value="0" max="100"></progress>
+    </div>
+
+    <div id="game-over-screen">
+      <h1 id="game-over-heading">You Win!</h1>
     </div>
 
     <canvas id="main-canvas"></canvas>
