@@ -42,7 +42,7 @@ export namespace Game {
      * defines the width and thickness of the game road
      */
     export const ROAD_CONFIG = {
-        length: 10,
+        length: 100,
         width: 30,
         thickness: 1,
     }
@@ -79,6 +79,14 @@ export namespace Game {
      * defines the background color of the game scene
      */
     export const SCENE_COLOR = new BABYLON.Color4(52 / 255, 235 / 255, 216 / 255, 1.0);
+
+    /**
+     * defines the path of images of the skybox
+     *
+     * skybox - plain high sky
+     * skybox4 - snow mountains
+     */
+    export const SKYBOX_PATH = "./textures/skybox4/skybox4"
 
     /**
      * initialization array for tire tracks

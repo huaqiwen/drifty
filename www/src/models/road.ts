@@ -10,7 +10,6 @@ export class Road {
 
     readonly leftEndFlagPos: Vector3;
     readonly rightEndFlagPos: Vector3;
-    readonly particleEmitterPos: Vector3;
 
     constructor(
         public length: number,
@@ -26,9 +25,6 @@ export class Road {
         const flagPositions = this.calculateFlagPositions();
         this.leftEndFlagPos = flagPositions[0];
         this.rightEndFlagPos = flagPositions[1];
-
-        // Calculate particles emitter position (end of the road).
-        this.particleEmitterPos = this.calcualteEmitterPosition();
     }
 
     /**
@@ -122,17 +118,6 @@ export class Road {
         }
 
         return [leftEndFlagPos, rightEndFlagPos];
-    }
-
-    /**
-     * Calculates and returns win-game particles emitter position (centre of the last block).
-     * This method uses `this.isRoadEndForward`, `this.leftEndFlagPos`, `this.rightEndFlagPos`.
-     *
-     * @return the emitter position
-     */
-    calcualteEmitterPosition(): Vector3 {
-        const deltaVec = new Vector3(Game.ROAD_CONFIG.width / 2, 0, Game.ROAD_CONFIG.width / 2);
-        return this.isRoadEndForward ? this.leftEndFlagPos.add(deltaVec) : this.rightEndFlagPos.add(deltaVec);
     }
 
     /**

@@ -42,7 +42,7 @@ async function createScene () {
     const scene = new Scene(engine);
 
     // Create skybox.
-    Builder.createSkybox("skyBox", "./textures/skybox/skybox", Game.ROAD_CONFIG.length * Game.ROAD_CONFIG.width + 500, scene);
+    Builder.createSkybox("skyBox", Game.SKYBOX_PATH, Game.ROAD_CONFIG.length * Game.ROAD_CONFIG.width + 500, scene);
 
     // Create light.
     light = new BABYLON.DirectionalLight("dir01", new BABYLON.Vector3(-2, -3, 0), scene);
@@ -69,7 +69,7 @@ async function createScene () {
 
     // Create follow camera.
     Builder.createFollowCamera("followCam", scene, canvas, "aventador", new Vector3(500, 500, 0),
-        12, 7, 170, true, true);
+        12, 7, 170, true, false);
 
     // Create signal panel and lights.
     Builder.createSignalPanel("sigPanel", scene);
@@ -243,9 +243,17 @@ async function endGame(didPlayerWin: boolean) {
     endTime = Date.now()
     const timeElapsed = (endTime - startTime) / 1000;
 
-    // If the player win, emit particles.
-    const particleSystem = Builder.createParticleSystem(road.particleEmitterPos, scene);
-    particleSystem.start();
+    // If the player win, emit particles at the four corners of the car.
+    const carPos = scene.getNodeByName("aventador").position;
+    [
+        carPos.add(new Vector3(5, 0, 5)),
+        carPos.add(new Vector3(5, 0, -5)),
+        carPos.add(new Vector3(-5, 0, 5)),
+        carPos.add(new Vector3(-5, 0, -5))
+    ].forEach((emitter) => {
+        const particleSystem = Builder.createParticleSystem(emitter, scene);
+        particleSystem.start();
+    })
 
     // If the player win, sleep for 2.0 secs (show the car stop),
     // if the player lose, sleep for 0.7 secs (show the car fall).
