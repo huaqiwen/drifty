@@ -243,9 +243,13 @@ async function endGame(didPlayerWin: boolean) {
     endTime = Date.now()
     const timeElapsed = (endTime - startTime) / 1000;
 
-    // If the player win, sleep for 1.5 secs (show the car stop),
+    // If the player win, emit particles.
+    const particleSystem = Builder.createParticleSystem(road.particleEmitterPos, scene);
+    particleSystem.start();
+
+    // If the player win, sleep for 2.0 secs (show the car stop),
     // if the player lose, sleep for 0.7 secs (show the car fall).
-    await sleep(didPlayerWin ? 1500 : 700);
+    await sleep(didPlayerWin ? 2000 : 700);
     engine.stopRenderLoop();
 
     // Show game over screen, hide the canvas.

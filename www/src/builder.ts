@@ -250,6 +250,29 @@ export function createRoadMesh(road: Road, scene: Scene, roadMaterial: BABYLON.S
 }
 
 
+export function createParticleSystem(emitter: Vector3 | BABYLON.AbstractMesh, scene: Scene): BABYLON.ParticleSystem {
+    const particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
+    particleSystem.particleTexture = new BABYLON.Texture("./textures/flare.png", scene);
+    particleSystem.emitter = emitter;
+    particleSystem.minSize = .3;
+    particleSystem.maxSize = .6;
+    particleSystem.emitRate = 1500;
+    particleSystem.minLifeTime = 0.3;
+    particleSystem.maxLifeTime = 1.5;
+    particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+    particleSystem.gravity = new BABYLON.Vector3(0, -20, 0);
+    particleSystem.direction1 = new BABYLON.Vector3(-7, 8, 3);
+    particleSystem.direction2 = new BABYLON.Vector3(7, 8, -3);
+    particleSystem.minAngularSpeed = 0;
+    particleSystem.maxAngularSpeed = Math.PI;
+    particleSystem.minEmitPower = 1;
+    particleSystem.maxEmitPower = 3;
+    particleSystem.updateSpeed = 0.005;
+
+    return particleSystem;
+}
+
+
 /**
  * Initialize settings to create a tire track mesh, and returns that mesh.
  * 

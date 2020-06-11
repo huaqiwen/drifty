@@ -10,6 +10,7 @@ export class Road {
 
     readonly leftEndFlagPos: Vector3;
     readonly rightEndFlagPos: Vector3;
+    readonly particleEmitterPos: Vector3;
 
     constructor(
         public length: number,
@@ -18,53 +19,22 @@ export class Road {
         this.segments = this.generateSegments();
         this.isRoadEndForward = this.segments.length % 2 == 1;
 
-        // Calculate goal distance
-        this.goalDistance = 0;
-        if (this.isRoadEndForward) {
-            this.goalDistance -= Game.CAR_START_POS[0].z;
-            for (let i=0; i < this.segments.length; i += 2) {
-                this.goalDistance += this.segments[i] * Game.ROAD_CONFIG.width;
-            }
-        } else {
-            this.goalDistance -= Game.CAR_START_POS[0].x;
-            for (let i=1; i < this.segments.length; i += 2) {
-                this.goalDistance += this.segments[i] * Game.ROAD_CONFIG.width;
-            }
-        }
-        // Subtract the length of the last block.
-        this.goalDistance -= Game.ROAD_CONFIG.width;
+        // Calculate goal distance.
+        this.goalDistance = this.calculateGoalDist();
 
-        // Calculate the flags position (end of the road)
-        this.leftEndFlagPos = new Vector3(0, 0, this.segments[0] * Game.ROAD_CONFIG.width);
-        this.rightEndFlagPos = new Vector3(Game.ROAD_CONFIG.width, 0, this.segments[0] * Game.ROAD_CONFIG.width);
-        for (let i=1; i < this.segments.length; i++) {
-            // Forward segment.
-            if (i % 2 == 0) {
-                // Last segment, leave the last block for deceleration.
-                if (i == this.segments.length - 1) {
-                    this.leftEndFlagPos = this.leftEndFlagPos.add(new Vector3(0, 0, (this.segments[i] - 2) * Game.ROAD_CONFIG.width));
-                    this.rightEndFlagPos = this.rightEndFlagPos.add(new Vector3(Game.ROAD_CONFIG.width, 0, (this.segments[i] - 1) * Game.ROAD_CONFIG.width));
-                    break;
-                }
-                this.leftEndFlagPos = this.leftEndFlagPos.add(new Vector3(0, 0, (this.segments[i] - 1) * Game.ROAD_CONFIG.width));
-                this.rightEndFlagPos = this.rightEndFlagPos.add(new Vector3(Game.ROAD_CONFIG.width, 0, this.segments[i] * Game.ROAD_CONFIG.width));
-            }
-            // Rightward segment.
-            else {
-                // Last segment, leave the last block for deceleration.
-                if (i == this.segments.length - 1) {
-                    this.leftEndFlagPos = this.leftEndFlagPos.add(new Vector3((this.segments[i] - 1) * Game.ROAD_CONFIG.width, 0, Game.ROAD_CONFIG.width));
-                    this.rightEndFlagPos = this.rightEndFlagPos.add(new Vector3((this.segments[i] - 2) * Game.ROAD_CONFIG.width, 0, 0));
-                    break;
-                }
-                this.leftEndFlagPos = this.leftEndFlagPos.add(new Vector3(this.segments[i] * Game.ROAD_CONFIG.width, 0, Game.ROAD_CONFIG.width));
-                this.rightEndFlagPos = this.rightEndFlagPos.add(new Vector3((this.segments[i] - 1) * Game.ROAD_CONFIG.width, 0, 0));
-            }
-        }
+        // Calculate flag positions (end of the road).
+        const flagPositions = this.calculateFlagPositions();
+        this.leftEndFlagPos = flagPositions[0];
+        this.rightEndFlagPos = flagPositions[1];
+
+        // Calculate particles emitter position (end of the road).
+        this.particleEmitterPos = this.calcualteEmitterPosition();
     }
 
     /**
-     * Generate the straight segments of the road.
+     * Generates and returns the straight segments of the road.
+     *
+     * @return road segments
      */
     generateSegments(): number[] {
         const segments = [];
@@ -90,6 +60,79 @@ export class Road {
         segments[0] += 2;
 
         return segments;
+    }
+
+    /**
+     * Calculates and returns the goal distance for this road.
+     * This method uses `this.segments`.
+     *
+     * @return the goal distance
+     */
+    calculateGoalDist(): number {
+        let goalDistance = 0;
+        if (this.isRoadEndForward) {
+            goalDistance -= Game.CAR_START_POS[0].z;
+            for (let i=0; i < this.segments.length; i += 2) {
+                goalDistance += this.segments[i] * Game.ROAD_CONFIG.width;
+            }
+        } else {
+            goalDistance -= Game.CAR_START_POS[0].x;
+            for (let i=1; i < this.segments.length; i += 2) {
+                goalDistance += this.segments[i] * Game.ROAD_CONFIG.width;
+            }
+        }
+        // Subtract the length of the last block.
+        goalDistance -= Game.ROAD_CONFIG.width;
+        return goalDistance
+    }
+
+    /**
+     * Calculates and returns the end-flag positions of the road.
+     * This method uses `this.segments`.
+     *
+     * @return [left end-flag position, right end-flag position]
+     */
+    calculateFlagPositions(): [Vector3, Vector3] {
+        let leftEndFlagPos = new Vector3(0, 0, this.segments[0] * Game.ROAD_CONFIG.width);
+        let rightEndFlagPos = new Vector3(Game.ROAD_CONFIG.width, 0, this.segments[0] * Game.ROAD_CONFIG.width);
+
+        for (let i=1; i < this.segments.length; i++) {
+            // Forward segment.
+            if (i % 2 == 0) {
+                // Last segment, leave the last block for deceleration.
+                if (i == this.segments.length - 1) {
+                    leftEndFlagPos = leftEndFlagPos.add(new Vector3(0, 0, (this.segments[i] - 2) * Game.ROAD_CONFIG.width));
+                    rightEndFlagPos = rightEndFlagPos.add(new Vector3(Game.ROAD_CONFIG.width, 0, (this.segments[i] - 1) * Game.ROAD_CONFIG.width));
+                    break;
+                }
+                leftEndFlagPos = leftEndFlagPos.add(new Vector3(0, 0, (this.segments[i] - 1) * Game.ROAD_CONFIG.width));
+                rightEndFlagPos = rightEndFlagPos.add(new Vector3(Game.ROAD_CONFIG.width, 0, this.segments[i] * Game.ROAD_CONFIG.width));
+            }
+            // Rightward segment.
+            else {
+                // Last segment, leave the last block for deceleration.
+                if (i == this.segments.length - 1) {
+                    leftEndFlagPos = leftEndFlagPos.add(new Vector3((this.segments[i] - 1) * Game.ROAD_CONFIG.width, 0, Game.ROAD_CONFIG.width));
+                    rightEndFlagPos = rightEndFlagPos.add(new Vector3((this.segments[i] - 2) * Game.ROAD_CONFIG.width, 0, 0));
+                    break;
+                }
+                leftEndFlagPos = leftEndFlagPos.add(new Vector3(this.segments[i] * Game.ROAD_CONFIG.width, 0, Game.ROAD_CONFIG.width));
+                rightEndFlagPos = rightEndFlagPos.add(new Vector3((this.segments[i] - 1) * Game.ROAD_CONFIG.width, 0, 0));
+            }
+        }
+
+        return [leftEndFlagPos, rightEndFlagPos];
+    }
+
+    /**
+     * Calculates and returns win-game particles emitter position (centre of the last block).
+     * This method uses `this.isRoadEndForward`, `this.leftEndFlagPos`, `this.rightEndFlagPos`.
+     *
+     * @return the emitter position
+     */
+    calcualteEmitterPosition(): Vector3 {
+        const deltaVec = new Vector3(Game.ROAD_CONFIG.width / 2, 0, Game.ROAD_CONFIG.width / 2);
+        return this.isRoadEndForward ? this.leftEndFlagPos.add(deltaVec) : this.rightEndFlagPos.add(deltaVec);
     }
 
     /**
