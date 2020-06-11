@@ -244,16 +244,18 @@ async function endGame(didPlayerWin: boolean) {
     const timeElapsed = (endTime - startTime) / 1000;
 
     // If the player win, emit particles at the four corners of the car.
-    const carPos = scene.getNodeByName("aventador").position;
-    [
-        carPos.add(new Vector3(5, 0, 5)),
-        carPos.add(new Vector3(5, 0, -5)),
-        carPos.add(new Vector3(-5, 0, 5)),
-        carPos.add(new Vector3(-5, 0, -5))
-    ].forEach((emitter) => {
-        const particleSystem = Builder.createParticleSystem(emitter, scene);
-        particleSystem.start();
-    })
+    if (didPlayerWin) {
+        const carPos = scene.getNodeByName("aventador").position;
+        [
+            carPos.add(new Vector3(5, 0, 5)),
+            carPos.add(new Vector3(5, 0, -5)),
+            carPos.add(new Vector3(-5, 0, 5)),
+            carPos.add(new Vector3(-5, 0, -5))
+        ].forEach((emitter) => {
+            const particleSystem = Builder.createParticleSystem(emitter, scene);
+            particleSystem.start();
+        })
+    }
 
     // If the player win, sleep for 2.0 secs (show the car stop),
     // if the player lose, sleep for 0.7 secs (show the car fall).
