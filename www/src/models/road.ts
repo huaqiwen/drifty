@@ -72,7 +72,7 @@ export class Road {
         let currentLength = 1;
         let currentSegmentLength = 1;
 
-        while (currentLength < this.length - 2) {
+        while (currentLength < this.length - 4) {
             const prob = this.roadCurveProbability(currentSegmentLength);
 
             if (Math.random() < prob) {
@@ -87,6 +87,7 @@ export class Road {
         }
 
         segments.push(currentSegmentLength + 2)
+        segments[0] += 2;
 
         return segments;
     }

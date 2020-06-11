@@ -53,7 +53,7 @@ export async function createModelNode(meshNames: string, fileRootUrl: string, fi
             loadedPercent = Math.floor(dlCount * 100.0) / 100.0;
         }
         // Assuming "loading-progress" of "gameLoadingScreen" is an existing HTML elem.
-        const loadingScreen = document.getElementById("gameLoadingScreen");
+        const loadingScreen = document.getElementById("game-loading-screen");
         const elms = loadingScreen.getElementsByTagName("*");
         for (let i=0; i < elms.length; i++) {
             if (elms[i].id === "loading-progress") {

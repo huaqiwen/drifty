@@ -7,7 +7,7 @@ import {Direction} from "./types";
 import {Colors, Game} from "./settings";
 
 import {Road} from "./models/road";
-import {GameLoadingScreen} from "./models/game-loading-screen";
+import {GameLoadingScreen, GameOverData, ScreenType} from "./models/game-loading-screen";
 
 
 const canvas = document.getElementById("main-canvas") as HTMLCanvasElement;
@@ -35,7 +35,7 @@ async function createScene () {
     let inGameCars = ["aventador"];
 
     // Create loading screen.
-    engine.loadingScreen = new GameLoadingScreen("Loading meshes to scene.");
+    engine.loadingScreen = new GameLoadingScreen("Loading meshes to scene.", ScreenType.Loading);
     engine.displayLoadingUI();
 
     // Create scene.
@@ -76,11 +76,9 @@ async function createScene () {
 
     // Create 2D GUI.
     const guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("gui2d", true);
-    distLabel = Builder.createGUITextBlock("distLabel", "Distance traveled: 0", 0, 0);
     fpsLabel = Builder.createGUITextBlock("fpsLabel", "FPS: 0", 0, 1);
-    distLabel.paddingTop = 5; distLabel.paddingLeft = 10;
     fpsLabel.paddingTop = 5; fpsLabel.paddingRight = 10;
-    guiTexture.addControl(distLabel); guiTexture.addControl(fpsLabel);
+    guiTexture.addControl(fpsLabel);
 
     // Initialize tire tracks.
     tireTrack = Builder.initTireTracks(scene);
@@ -95,8 +93,10 @@ let scene;
 let light;
 let road: Road;
 
+let startTime: number;
+let endTime: number;
+
 // GUI elements.
-let distLabel: GUI.TextBlock;
 let fpsLabel: GUI.TextBlock;
 
 let carSetup = {
@@ -121,13 +121,10 @@ createScene().then((result) => {
         if (!isGameStarted) await setupGame();
         const aventadorRoot = scene.getNodeByName("aventador");
 
+        // Road does not contain the car, game over, user lose
         if (movement.state != Direction.Fall && !road.contains(aventadorRoot.position, Game.ROAD_CONFIG.width)) {
             movement.state = Direction.Fall;
-            if (road.isCarFinished(movement.forwardDist, movement.rightDist)) {
-                await Promise.all([endGame("You Win!"), fall()]);
-            } else {
-                await Promise.all([endGame("Game Over!"), fall()]);
-            }
+            await Promise.all([endGame(false), fall()]);
         }
 
         // If crossed finish line, decelerate.
@@ -137,7 +134,7 @@ createScene().then((result) => {
             const cam = scene.getCameraByName("followCam") as BABYLON.FollowCamera;
             cam.radius = 20; cam.heightOffset = 10; cam.rotationOffset = 140;
             await decel();
-            alert("You Win!!!"); location.reload();
+            await endGame(true);
         }
 
         // Update tire tracks
@@ -193,8 +190,7 @@ createScene().then((result) => {
             movement.rightDist += 1.5 * movement.rightward * deltaMultiplier;
         }
 
-        // Update distance label & fps label
-        distLabel.text = "Distance traveled: " + ((movement.rightDist + movement.forwardDist) / 10).toFixed();
+        // Update fps label
         fpsLabel.text = "FPS: " + engine.getFps().toFixed();
 
         // Update light position.
@@ -232,19 +228,33 @@ async function setupGame() {
     addCtrls();
     movement.state = Direction.Forward;
 
+    // Start the timer and accelerate.
+    startTime = Date.now();
     await accel();
 }
 
 /**
  * End the game, remove event listeners.
  */
-async function endGame(message?: string) {
+async function endGame(didPlayerWin: boolean) {
     removeCtrls();
 
-    // If `message` is not null, alert it
-    await sleep(600);
-    if (typeof message !== "undefined") alert(message);
-    location.reload();
+    // End timer, calculate time.
+    endTime = Date.now()
+    const timeElapsed = (endTime - startTime) / 1000;
+
+    // If the player win, sleep for 1.5 secs (show the car stop),
+    // if the player lose, sleep for 0.7 secs (show the car fall).
+    await sleep(didPlayerWin ? 1500 : 700);
+    engine.stopRenderLoop();
+
+    // Show game over screen, hide the canvas.
+    canvas.style.display = "none";
+    // Divide the actual distance by 2.5 to get a reasonable speed (around 136 km/h)
+    engine.loadingScreen = new GameLoadingScreen(didPlayerWin ? "You Win!" : "You Lose!", ScreenType.GameOver, new GameOverData(didPlayerWin,
+        (movement.rightDist + movement.forwardDist) / 2.5,
+        timeElapsed));
+    engine.displayLoadingUI();
 }
 
 /**
@@ -311,8 +321,6 @@ async function accel() {
  * Decelerate and rotate in 0.4 seconds.
  */
 async function decel() {
-    removeCtrls();
-
     const fDiff = movement.forward;
     const rDiff = movement.rightward;
 

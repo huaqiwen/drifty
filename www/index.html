@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <title>Drifty</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
 
     <style>
       * {
@@ -21,7 +23,15 @@
         display: block;
       }
 
-      #gameLoadingScreen {
+      h1 {
+        color: white;
+      }
+
+      col {
+        text-align: center;
+      }
+
+      .center {
         position: absolute;
         width: 100%;
         color: white;
@@ -44,10 +54,18 @@
   </head>
 
   <body>
-    <div id="gameLoadingScreen">
+    <div id="game-loading-screen" class="center">
       <label id="loading-progress-label" for="loading-progress">Loading...</label>
       <span></span>
       <progress id="loading-progress" value="0" max="100"></progress>
+    </div>
+
+    <div id="game-over-screen" class="center">
+      <h1 id="game-over-heading"></h1>
+      <br>
+      <h4 id="game-over-distance-lbl"></h4>
+      <h4 id="game-over-time-lbl"></h4>
+      <button class="btn btn-outline-light" id="play-again-btn" type="button">Play Again!</button>
     </div>
 
     <canvas id="main-canvas"></canvas>
