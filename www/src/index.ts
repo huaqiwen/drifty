@@ -250,8 +250,9 @@ async function endGame(didPlayerWin: boolean) {
 
     // Show game over screen, hide the canvas.
     canvas.style.display = "none";
+    // Divide the actual distance by 2.5 to get a reasonable speed (around 136 km/h)
     engine.loadingScreen = new GameLoadingScreen(didPlayerWin ? "You Win!" : "You Lose!", ScreenType.GameOver, new GameOverData(didPlayerWin,
-        (movement.rightDist + movement.forwardDist) / 10,
+        (movement.rightDist + movement.forwardDist) / 2.5,
         timeElapsed));
     engine.displayLoadingUI();
 }

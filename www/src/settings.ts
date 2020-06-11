@@ -42,7 +42,7 @@ export namespace Game {
      * defines the width and thickness of the game road
      */
     export const ROAD_CONFIG = {
-        length: 20,
+        length: 100,
         width: 30,
         thickness: 1,
     }

@@ -60,9 +60,17 @@ export class GameLoadingScreen implements ILoadingScreen {
         document.getElementById("game-over-distance-lbl").innerText = `You traveled: ${distStr} m`;
         document.getElementById("game-over-time-lbl").innerText = `Time elapsed: ${timeStr} s`;
 
-        // Set play-again button.
-        document.getElementById("play-again-btn").onclick = () => {
-            location.reload();
-        }
+        // Set play-again button and listen to space key.
+        document.getElementById("play-again-btn").onclick = this.playAgain;
+        document.addEventListener("keyup", (e) => {
+            if (e.code == "Space") this.playAgain();
+        })
+    }
+
+    /**
+     * Play again event.
+     */
+    playAgain = () => {
+        location.reload();
     }
 }
