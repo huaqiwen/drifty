@@ -323,14 +323,9 @@ export function initTireSmoke(scene: Scene) {
         //Texture of each particle
         particleSystem.particleTexture = new BABYLON.Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
 
-        // lifetime
         particleSystem.minLifeTime = 1;
         particleSystem.maxLifeTime = 2;
-
-        // emit rate
         particleSystem.emitRate = 150;
-
-        // gravity
         particleSystem.gravity = new BABYLON.Vector3(0, 0.1, 0);
 
         // size gradient
@@ -364,7 +359,6 @@ export function initTireSmoke(scene: Scene) {
         // assign emitter
         particleSystem.emitter = emitter;
 
-        // Where the particles come from
         particleSystem.minEmitBox = new BABYLON.Vector3(0,0,0);
         particleSystem.maxEmitBox = new BABYLON.Vector3(0,0,0);
 
@@ -378,6 +372,8 @@ export function initTireSmoke(scene: Scene) {
     // Create emitter mesh for tires
     const emitterL = BABYLON.MeshBuilder.CreateBox("Emitter_L",{width: 1, depth: 1, height: 0.3 }, scene);
     const emitterR = BABYLON.MeshBuilder.CreateBox("Emitter_R",{width: 1, depth: 1, height: 0.3 }, scene);
+    emitterL.visibility = 0;
+    emitterR.visibility = 0;
 
     emitterL.parent = scene.getNodeByName("aventador");
     emitterR.parent = scene.getNodeByName("aventador");
