@@ -310,6 +310,11 @@ export function updateTireTracks(trackArray: Vector3[][], scene : Scene, globalT
 }
 
 
+/**
+ * Initializes settings for a particle system, then attach system to emitter mesh.
+ * 
+ * @param scene - the scene in which to create the mesh
+ */
 export function initTireSmoke(scene: Scene) {
      // Create a particle system
      const initParticleSystem = (emitter) => {
@@ -388,11 +393,22 @@ export function initTireSmoke(scene: Scene) {
     return particleSystems;
 }
 
+/**
+ * Starts all the smoke particle systems
+ * 
+ * @param particleSystems - the smoke particle systems used globally
+ */
 export function startTireSmoke(particleSystems: BABYLON.ParticleSystem[]) {
     particleSystems[0].start();
     particleSystems[1].start();
 }
 
+
+/**
+ * Stops all the smoke particle systems
+ * 
+ * @param particleSystems - the smoke particle systems used globally
+ */
 export function stopTireSmoke(particleSystems: BABYLON.ParticleSystem[]) {
     particleSystems[0].stop();
     particleSystems[1].stop();
