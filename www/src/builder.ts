@@ -260,7 +260,7 @@ export function initTireTracks(scene : Scene) {
     const tireTrackUVs = Game.TIRETRACK_UVS;
     
     // create a bounding box for tire tracks, attach it to parent node
-    const box = BABYLON.MeshBuilder.CreateBox("BoundBox",{width: 2, depth: 3, height: 1 }, scene);
+    const box = BABYLON.MeshBuilder.CreateBox("BoundBox",{width: 2, depth: 2.5, height: 1 }, scene);
     box.visibility = 0;
     box.parent = scene.getNodeByName("aventador");
     box.position.y = 0.65;
@@ -290,9 +290,10 @@ export function initTireTracks(scene : Scene) {
  * @param scene - the scene in which to create the mesh
  * @param globalTireTrack - the tire track mesh that is being updated
  */
-export function updateTireTracks(trackArray: Vector3[][], scene : Scene, globalTireTrack: BABYLON.Mesh) {
+export function updateTireTracks(trackArray: Vector3[][], scene : Scene, globalTireTrack: BABYLON.Mesh, isFalling: boolean) {
     let path = [];
-
+    
+    if(!isFalling) {
     const arr = scene.getMeshByName("BoundBox").getVerticesData(BABYLON.VertexBuffer.PositionKind);
     const vertex1 = BABYLON.Vector3.FromArray(arr, 3*7);
     const vertex2 = BABYLON.Vector3.FromArray(arr, 0);
@@ -305,8 +306,101 @@ export function updateTireTracks(trackArray: Vector3[][], scene : Scene, globalT
     trackArray.push(path);
 
     BABYLON.MeshBuilder.CreateRibbon(null, {pathArray: trackArray, instance: globalTireTrack});
+    }
 }
 
+
+export function initTireSmoke(scene: Scene) {
+     // Create a particle system
+     const initParticleSystem = (emitter) => {
+        var particleSystem;
+        if(BABYLON.GPUParticleSystem.IsSupported) {
+            particleSystem = new BABYLON.GPUParticleSystem("particles", { capacity:1000000 }, scene);
+            particleSystem.activeParticleCount = 200000;
+        }
+        particleSystem = new BABYLON.ParticleSystem("particles", 50000, scene);
+
+        //Texture of each particle
+        particleSystem.particleTexture = new BABYLON.Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
+
+        // lifetime
+        particleSystem.minLifeTime = 1;
+        particleSystem.maxLifeTime = 2;
+
+        // emit rate
+        particleSystem.emitRate = 150;
+
+        // gravity
+        particleSystem.gravity = new BABYLON.Vector3(0, 0.1, 0);
+
+        // size gradient
+        particleSystem.addSizeGradient(0, 3.5, 4.5);
+        particleSystem.addSizeGradient(0.3, 4, 5);
+        particleSystem.addSizeGradient(0.5, 3, 4);
+        particleSystem.addSizeGradient(0.7, 5, 6);
+        particleSystem.addSizeGradient(1.0, 6, 9);
+
+        // color gradient
+        particleSystem.addColorGradient(0, new BABYLON.Color4(0.65, 0.65, 0.65, 0.65), new BABYLON.Color4(0.8, 0.8, 0.8, 0.8));
+        particleSystem.addColorGradient(0.4, new BABYLON.Color4(0.2, 0.2, 0.2, 0.2), new BABYLON.Color4(0.4, 0.4, 0.4, 0.4));
+        particleSystem.addColorGradient(0.7, new BABYLON.Color4(0.05, 0.05, 0.05, 0.05), new BABYLON.Color4(0.1, 0.1, 0.1, 0.1));
+        particleSystem.addColorGradient(1.0, new BABYLON.Color4(0, 0, 0, 0), new BABYLON.Color4(0.15, 0.15, 0.15, 0.15));
+
+        // speed gradient
+        particleSystem.addVelocityGradient(0, 1, 1.5);
+        particleSystem.addVelocityGradient(0.1, 0.8, 0.9);
+        particleSystem.addVelocityGradient(0.7, 1, 1.5);
+        particleSystem.addVelocityGradient(1, 1.1, 1.2);
+
+        // rotation
+        particleSystem.minInitialRotation = 0;
+        particleSystem.maxInitialRotation = Math.PI;
+        particleSystem.minAngularSpeed = -1;
+        particleSystem.maxAngularSpeed = 1;
+
+        // blendmode
+        particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+        
+        // assign emitter
+        particleSystem.emitter = emitter;
+
+        // Where the particles come from
+        particleSystem.minEmitBox = new BABYLON.Vector3(0,0,0);
+        particleSystem.maxEmitBox = new BABYLON.Vector3(0,0,0);
+
+        // emit power
+        particleSystem.minEmitPower = 10;
+        particleSystem.maxEmitPower = 10;
+
+        return particleSystem;
+    }
+
+    // Create emitter mesh for tires
+    const emitterL = BABYLON.MeshBuilder.CreateBox("Emitter_L",{width: 1, depth: 1, height: 0.3 }, scene);
+    const emitterR = BABYLON.MeshBuilder.CreateBox("Emitter_R",{width: 1, depth: 1, height: 0.3 }, scene);
+
+    emitterL.parent = scene.getNodeByName("aventador");
+    emitterR.parent = scene.getNodeByName("aventador");
+
+    emitterL.position = new Vector3(-1,0.25,-1);
+    emitterR.position = new Vector3(-1,0.25,1);
+
+    let particleSystems = [];
+    particleSystems.push(initParticleSystem(emitterR));
+    particleSystems.push(initParticleSystem(emitterL));
+
+    return particleSystems;
+}
+
+export function startTireSmoke(particleSystems: BABYLON.ParticleSystem[]) {
+    particleSystems[0].start();
+    particleSystems[1].start();
+}
+
+export function stopTireSmoke(particleSystems: BABYLON.ParticleSystem[]) {
+    particleSystems[0].stop();
+    particleSystems[1].stop();
+}
 
 /**
  * Creates a signal light panel (config in `settings.ts`),

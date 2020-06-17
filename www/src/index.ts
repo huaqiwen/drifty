@@ -30,6 +30,7 @@ let movement = {
 
 let tireTrack;
 const trackArray = Array(40).fill(Array(2).fill(Vector3.Zero));
+let smokeParticleSystem = [];
 
 async function createScene () {
     let inGameCars = ["aventador"];
@@ -83,6 +84,9 @@ async function createScene () {
     // Initialize tire tracks.
     tireTrack = Builder.initTireTracks(scene);
 
+    // Initialize tire smoke.
+    smokeParticleSystem = Builder.initTireSmoke(scene);
+
     // Hide loading screen.
     engine.hideLoadingUI();
 
@@ -121,9 +125,10 @@ createScene().then((result) => {
         if (!isGameStarted) await setupGame();
         const aventadorRoot = scene.getNodeByName("aventador");
 
-        // Road does not contain the car, game over, user lose
+        // Road does not contain the car, game over, stop tire smoke & user loses
         if (movement.state != Direction.Fall && !road.contains(aventadorRoot.position, Game.ROAD_CONFIG.width)) {
             movement.state = Direction.Fall;
+            Builder.stopTireSmoke(smokeParticleSystem);
             await Promise.all([endGame(false), fall()]);
         }
 
@@ -138,7 +143,7 @@ createScene().then((result) => {
         }
 
         // Update tire tracks
-        Builder.updateTireTracks(trackArray, scene, tireTrack);
+        Builder.updateTireTracks(trackArray, scene, tireTrack, (movement.state == Direction.Fall));
 
         if (movement.state !== Direction.Still && movement.state !== Direction.Fall && movement.state !== Direction.Decel) {
             // Update progress with time past
@@ -161,18 +166,27 @@ createScene().then((result) => {
                 movement.forward = limit(movement.forward + forwardChange);
                 movement.rightward = limit(movement.rightward + sideChange);
                 movement.rotationDelta = rotation;
+
+                // Start Tire Smoke
+                Builder.startTireSmoke(smokeParticleSystem);
             } else {
                 // Turning forward
                 movement.forward = limit(movement.forward + sideChange);
                 movement.rightward = limit(movement.rightward + forwardChange);
                 movement.rotationDelta = Math.PI / 2 - rotation;
+
+                // Start Tire Smoke
+                Builder.startTireSmoke(smokeParticleSystem);
             }
 
             // Finished turning
             if (progress === 1) {
                 movement.state = isSpaceKeyDown ? Direction.Right : Direction.Forward;
-            }
 
+                // Stop Tire Smoke
+                Builder.stopTireSmoke(smokeParticleSystem);
+            }
+            
             movement.turningProgress = progress;
         }
 
@@ -328,7 +342,9 @@ async function decel() {
         movement.forward -= fDiff / 60;
         movement.rightward -= rDiff / 60;
         movement.rotationDelta += Math.PI / 60;
+        Builder.startTireSmoke(smokeParticleSystem);
         await sleep(400/60)
+        Builder.stopTireSmoke(smokeParticleSystem);
     }
 }
 
