@@ -31,7 +31,7 @@
     "babylonjs-gui": "^4.1.0",
     "drifty": "file:../pkg",
     "kind-of": ">=6.0.3",
-    "minimist": ">=0.2.1"
+    "minimist": ">=1.2.6"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^5.0.0",
